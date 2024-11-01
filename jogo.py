@@ -22,8 +22,8 @@ camera_x = 0
 camera_y = 0
 p_speedx = 0
 p_speedy = 0
-player_x = 200
-player_y = 440
+player_x = 35
+player_y = 240
 while game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -52,19 +52,18 @@ while game:
             if event.key == pygame.K_s:
                 p_speedy -= 4
     
-    
-    
-    
     player_x += p_speedx
-    player_y += p_speedy
+    player_y += p_speedy 
 
     camera_x = player_x - LARG // 2
     camera_y = player_y - ALT // 2
     
+    camera_x = max(0, min(camera_x, larg_fundo - LARG)) # limita a camera 
+    camera_y = max(0, min(camera_y, alt_fundo - ALT))
     
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
-    window.blit(assets['personagem'],(LARG // 2, ALT // 2)) # atualiza o jogador
+    window.blit(assets['personagem'], (player_x - camera_x, player_y - camera_y)) # atualiza o jogador
     for bloco in blocos_horizont:
         pygame.draw.rect(window, (0, 255, 0), bloco.move(-camera_x,-camera_y))
     for bloco in blocos_vert:
