@@ -1,6 +1,7 @@
 import pygame
 from assets import load_assets
 from config import FPS, ALT, LARG
+
 pygame.init()
 
 
@@ -13,61 +14,99 @@ blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,530,10,100),r
 # carregar assets
 assets = load_assets()
 
-player_rect = assets['personagem'].get_rect()
+class Player(pygame.sprite.Sprite):
+    def __init__(self,assets):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['personagem']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = pygame.Rect(0, 0, 1, 1)
+        
+
+        self.rect.centerx = 240
+        self.rect.bottom = 35
+        self.speedx = 0
+        self.speedy = 0
+        self.assets = assets 
+    
+    def update(self):
+        
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+
+        if self.rect.right > larg_fundo :
+            self.rect.right = larg_fundo
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > alt_fundo - self.rect.height:
+            self.rect.bottom = alt_fundo - self.rect.height
+
+player = Player(assets)
+
+
+    
+    
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
 
 game = True
 camera_x = 0
 camera_y = 0
-p_speedx = 0
-p_speedy = 0
-player_x = 35
-player_y = 240
+player.speedx = 0
+player.speedy = 0
+
 while game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
-        if event.type == pygame.MOUSEMOTION:
-            print(event)
+            
         if event.type == pygame.KEYDOWN:
             # Dependendo da tecla, altera a velocidade.
             if event.key == pygame.K_d:
-                p_speedx += 4
+                player.speedx += 4
             if event.key == pygame.K_a:
-                p_speedx -= 4
+                player.speedx -= 4
             if event.key == pygame.K_w:
-                p_speedy -= 4
+                player.speedy -= 4
             if event.key == pygame.K_s:
-                p_speedy += 4
+                player.speedy += 4
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
             # Dependendo da tecla, altera a velocidade.
             if event.key == pygame.K_d:
-                p_speedx -= 4
+                player.speedx -= 4
             if event.key == pygame.K_a:
-                p_speedx += 4
+                player.speedx += 4
             if event.key == pygame.K_w:
-                p_speedy += 4
+                player.speedy += 4
             if event.key == pygame.K_s:
-                p_speedy -= 4
+                player.speedy -= 4
+     
+    camera_x = player.rect.centerx - LARG // 2
+    camera_y = player.rect.centery - ALT // 2
     
-    player_x += p_speedx
-    player_y += p_speedy 
+    
 
-    camera_x = player_x - LARG // 2
-    camera_y = player_y - ALT // 2
     
     camera_x = max(0, min(camera_x, larg_fundo - LARG)) # limita a camera 
     camera_y = max(0, min(camera_y, alt_fundo - ALT))
+
     
+    
+
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
-    window.blit(assets['personagem'], (player_x - camera_x, player_y - camera_y)) # atualiza o jogador
+    window.blit(assets['personagem'], (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
+    player.update()
+    
     for bloco in blocos_horizont:
         pygame.draw.rect(window, (0, 255, 0), bloco.move(-camera_x,-camera_y))
     for bloco in blocos_vert:
         pygame.draw.rect(window, (0, 255, 0), bloco.move(-camera_x,-camera_y))
+    
+    
 
     pygame.display.flip()  # Atualiza a tela
     pygame.time.Clock().tick(FPS) 
