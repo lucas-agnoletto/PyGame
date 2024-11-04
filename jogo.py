@@ -14,13 +14,25 @@ blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,530,10,100),r
 # carregar assets
 assets = load_assets()
 
+class Platform(pygame.sprite.Sprite):
+    def __init__(self,position,size):
+        pygame.sprite.Sprite.__init__(self)
+        self.rect = pygame.Rect(position[0], position[1], size[0], size[1])
+        self.mask = pygame.mask.Mask(size, True)
+
+platforms_horizont = []
+for bloco in blocos_horizont:
+    platforms_horizont.append(Platform((bloco.x, bloco.y), (bloco.width, bloco.height)))
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
         pygame.sprite.Sprite.__init__(self)
 
         self.image = assets['personagem']
         self.mask = pygame.mask.from_surface(self.image)
-        self.rect = pygame.Rect(0, 0, 1, 1)
+        
+        self.rect = self.mask.get_rect()
         
 
         self.rect.centerx = 240
@@ -36,10 +48,10 @@ class Player(pygame.sprite.Sprite):
 
         if self.rect.right > larg_fundo :
             self.rect.right = larg_fundo
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.top < 0:
-            self.rect.top = 0
+        if self.rect.left < -60:
+            self.rect.left = -60
+        if self.rect.top < -70:
+            self.rect.top = -70
         if self.rect.bottom > alt_fundo - self.rect.height:
             self.rect.bottom = alt_fundo - self.rect.height
 
@@ -54,8 +66,6 @@ alt_fundo = assets['fundo'].get_height()
 game = True
 camera_x = 0
 camera_y = 0
-player.speedx = 0
-player.speedy = 0
 
 while game:
     for event in pygame.event.get():
@@ -84,6 +94,8 @@ while game:
             if event.key == pygame.K_s:
                 player.speedy -= 4
      
+    
+    
     camera_x = player.rect.centerx - LARG // 2
     camera_y = player.rect.centery - ALT // 2
     
@@ -98,9 +110,14 @@ while game:
 
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
+    pygame.draw.rect(window, (0,0,0), player.rect)
     window.blit(assets['personagem'], (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
     player.update()
-    
+
+    for bloco in platforms_horizont:
+        if pygame.sprite.collide_mask(player, bloco):
+            player.rect.bottom = bloco.rect.top
+            
     for bloco in blocos_horizont:
         pygame.draw.rect(window, (0, 255, 0), bloco.move(-camera_x,-camera_y))
     for bloco in blocos_vert:
