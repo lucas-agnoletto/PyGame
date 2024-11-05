@@ -10,10 +10,10 @@ pygame.display.set_caption('Máfia 5')
 rect = pygame.Rect
 # blocos para haver colisão
 blocos_horizont = [rect(0,440, 335, 10),rect(195,590,150,10),rect(94,729,360,10),rect(445,630,430,10),rect(880,530,210,10),rect(1090,630,300,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,340,10),rect(2090,630,200,10)] 
-blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,530,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1750,440,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
+blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1750,440,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
 # carregar assets
 assets = load_assets()
-
+# Classe plataforma
 class Platform(pygame.sprite.Sprite):
     def __init__(self,position,size):
         pygame.sprite.Sprite.__init__(self)
@@ -23,8 +23,11 @@ class Platform(pygame.sprite.Sprite):
 platforms_horizont = []
 for bloco in blocos_horizont:
     platforms_horizont.append(Platform((bloco.x, bloco.y), (bloco.width, bloco.height)))
+platforms_vert = []
+for bloco in blocos_vert:
+    platforms_vert.append(Platform((bloco.x, bloco.y), (bloco.width, bloco.height)))
 
-
+# Classe jogador
 class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
         pygame.sprite.Sprite.__init__(self)
@@ -38,7 +41,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.centerx = 240
         self.rect.bottom = 35
         self.speedx = 0
-        self.speedy = 0
+        self.speedy = 6
         self.assets = assets 
     
     def update(self):
@@ -66,7 +69,7 @@ alt_fundo = assets['fundo'].get_height()
 game = True
 camera_x = 0
 camera_y = 0
-
+# Loop principal do jogo
 while game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -82,6 +85,8 @@ while game:
                 player.speedy -= 4
             if event.key == pygame.K_s:
                 player.speedy += 4
+            if event.key == pygame.K_SPACE:
+                player.speedy -= 14
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
             # Dependendo da tecla, altera a velocidade.
@@ -93,7 +98,8 @@ while game:
                 player.speedy += 4
             if event.key == pygame.K_s:
                 player.speedy -= 4
-     
+            if event.key == pygame.K_SPACE:
+                player.speedy += 14
     
     
     camera_x = player.rect.centerx - LARG // 2
@@ -101,8 +107,8 @@ while game:
     
     
 
-    
-    camera_x = max(0, min(camera_x, larg_fundo - LARG)) # limita a camera 
+    # limita a camera 
+    camera_x = max(0, min(camera_x, larg_fundo - LARG)) 
     camera_y = max(0, min(camera_y, alt_fundo - ALT))
 
     
@@ -110,14 +116,25 @@ while game:
 
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
-    pygame.draw.rect(window, (0,0,0), player.rect)
+    pygame.draw.rect(window, (0,0,0), player.rect.move(-camera_x,-camera_y))
     window.blit(assets['personagem'], (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
     player.update()
-
+    
+    # Colisão entre player e bloco
     for bloco in platforms_horizont:
         if pygame.sprite.collide_mask(player, bloco):
-            player.rect.bottom = bloco.rect.top
+            if player.speedy > 0:
+                player.rect.y -= player.speedy
             
+    for bloco in platforms_vert:
+        if pygame.sprite.collide_mask(player, bloco):
+            # if player.speedx > 0:
+            player.rect.right -= player.speedx
+            if player.speedy > 0:
+                player.rect.y -= player.speedy
+            # if player.speedx < 0:
+                # player.rect.left = bloco.rect.right - 70
+    
     for bloco in blocos_horizont:
         pygame.draw.rect(window, (0, 255, 0), bloco.move(-camera_x,-camera_y))
     for bloco in blocos_vert:

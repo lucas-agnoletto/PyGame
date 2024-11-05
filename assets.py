@@ -26,17 +26,25 @@ def load_spritesheet(spritesheet, rows, columns):
 def load_assets():
     assets = {}
 
-    personagem = pygame.image.load('assets/img/Idle.png').convert_alpha()
+    personagem = pygame.image.load('assets/img/Gangster.png').convert_alpha()
+    andar = pygame.image.load('assets/img/Gangster(caminhar).png').convert_alpha()
+    andar = load_spritesheet(andar,1,10)
     personagem = load_spritesheet(personagem,1,6)
     personagem = personagem[0]
     escala = 1.5  
     nova_largura = int(personagem.get_width() * escala)
     nova_altura = int(personagem.get_height() * escala)
+    # Personagem parado
     assets['personagem'] = pygame.transform.scale(personagem, (nova_largura, nova_altura))
+    for i in range(len(andar)):
+        andar[i] = pygame.transform.scale(andar[i], (nova_largura, nova_altura))
+    # lista de personagem andando : para utilizar, acessar os indices 0 a 9
+    assets['andar'] = andar
+    
 
     fundo = pygame.image.load('assets/img/fundo.png').convert_alpha()
     fundo_larg = int(fundo.get_width()*3)
     fundo_alt = int(fundo.get_height()*3)
-
+    # Background
     assets['fundo'] = pygame.transform.scale(fundo,(fundo_larg,fundo_alt))
     return assets
