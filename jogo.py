@@ -13,6 +13,10 @@ blocos_horizont = [rect(0,440, 335, 10),rect(195,590,150,10),rect(94,729,360,10)
 blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1750,440,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
 # carregar assets
 assets = load_assets()
+STILL = 0
+WALK = 1
+WALK_BACK = 2
+SHOT = 3
 # Classe plataforma
 class Platform(pygame.sprite.Sprite):
     def __init__(self,position,size):
@@ -32,20 +36,62 @@ class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = assets['personagem']
+        
+        self.animations = {
+            STILL: assets['personagem'][0:7],
+            WALK: assets['andar'][0:10],
+            WALK_BACK: assets['andar'][0:9],
+            SHOT: assets['atira'][1:3]
+        }
+        
+        
+        self.state = STILL
+        # Define animação atual
+        self.animation = self.animations[self.state]
+        # Inicializa o primeiro quadro da animação
+        self.frame = 0
+        self.image = self.animation[self.frame]
         self.mask = pygame.mask.from_surface(self.image)
-        
         self.rect = self.mask.get_rect()
-        
-
         self.rect.centerx = 240
         self.rect.bottom = 35
         self.speedx = 0
         self.speedy = 6
-        self.assets = assets 
+        self.assets = assets
+        
+        self.last_update = pygame.time.get_ticks()
+        self.frame_ticks = 200
+ 
     
     def update(self):
-        
+        now = pygame.time.get_ticks()
+
+        # Verifica quantos ticks se passaram desde a ultima mudança de frame.
+        elapsed_ticks = now - self.last_update
+
+        # Se já está na hora de mudar de imagem...
+        if elapsed_ticks > self.frame_ticks:
+
+            # Marca o tick da nova imagem.
+            self.last_update = now
+
+            # Avança um quadro.
+            self.frame += 1
+
+            # Atualiza animação atual
+            self.animation = self.animations[self.state]
+            
+            # Reinicia a animação caso o índice da imagem atual seja inválido
+            if self.frame >= len(self.animation):
+                self.frame = 0
+            
+            # Armazena a posição do centro da imagem
+            center = self.rect.center
+            # Atualiza imagem atual
+            self.image = self.animation[self.frame]
+            # Atualiza os detalhes de posicionamento
+            self.rect = self.image.get_rect()
+            self.rect.center = center
         self.rect.x += self.speedx
         self.rect.y += self.speedy
 
@@ -79,32 +125,38 @@ while game:
             # Dependendo da tecla, altera a velocidade.
             if event.key == pygame.K_d:
                 player.speedx += 4
+                player.state = WALK
             if event.key == pygame.K_a:
                 player.speedx -= 4
+                player.state = WALK_BACK
             if event.key == pygame.K_w:
-                player.speedy -= 4
+                player.speedy -= 14
             if event.key == pygame.K_s:
                 player.speedy += 4
             if event.key == pygame.K_SPACE:
-                player.speedy -= 14
+                player.state = SHOT
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
             # Dependendo da tecla, altera a velocidade.
             if event.key == pygame.K_d:
                 player.speedx -= 4
+                player.state = STILL
             if event.key == pygame.K_a:
                 player.speedx += 4
+                player.state = STILL
             if event.key == pygame.K_w:
-                player.speedy += 4
+                player.speedy += 14
             if event.key == pygame.K_s:
                 player.speedy -= 4
             if event.key == pygame.K_SPACE:
-                player.speedy += 14
+                player.speedy = STILL   
     
-    
+    # posiciona a camera
     camera_x = player.rect.centerx - LARG // 2
     camera_y = player.rect.centery - ALT // 2
     
+    
+        
     
 
     # limita a camera 
@@ -113,12 +165,15 @@ while game:
 
     
     
-
+    # Atualiza tela
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
     pygame.draw.rect(window, (0,0,0), player.rect.move(-camera_x,-camera_y))
-    window.blit(assets['personagem'], (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
+    window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
     player.update()
+    
+    
+        
     
     # Colisão entre player e bloco
     for bloco in platforms_horizont:
@@ -135,6 +190,7 @@ while game:
             # if player.speedx < 0:
                 # player.rect.left = bloco.rect.right - 70
     
+    # Desenha as plataformas para ver durante o desenvolvimento
     for bloco in blocos_horizont:
         pygame.draw.rect(window, (0, 255, 0), bloco.move(-camera_x,-camera_y))
     for bloco in blocos_vert:
