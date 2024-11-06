@@ -9,10 +9,10 @@ window = pygame.display.set_mode((LARG,ALT))
 pygame.display.set_caption('Máfia 5')
 rect = pygame.Rect
 # blocos para haver colisão
-blocos_horizont = [rect(0,440, 335, 10),rect(195,590,150,10),rect(94,729,360,10),rect(445,630,430,10),rect(880,530,213,10),rect(1090,630,300,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,340,10),rect(2090,630,200,10)] 
-blocos_vert = [rect(440,650,10,100),rect(875,540,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1746,445,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
+blocos_horizont = [rect(0,632,80,10),rect(0,440, 335, 10),rect(195,590,145,10),rect(94,729,360,10),rect(445,630,430,10),rect(875,530,217,10),rect(1090,630,300,10),rect(1200,260,390,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,345,10),rect(2090,630,200,10),rect(2600,530,60,10),rect(2650,490,530,10)] 
+blocos_vert = [rect(75,640,10,100),rect(445,640,10,100),rect(875,540,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1746,445,10,60),rect(2090,500,10,150),rect(2280,630,10,200),rect(2600,542,10,500),rect(2650,500,10,40)]
 # carregar assets
-GRAVIDADE = 1
+GRAVIDADE = 0
 
 assets = load_assets()
 STILL = 0
@@ -87,8 +87,7 @@ class Player(pygame.sprite.Sprite):
     
     def update(self):
         # Gravidade
-        print(self.speedy)
-        print(self.rect.x)
+        
         self.speedy += GRAVIDADE
         
         if self.speedy > 0:
@@ -217,20 +216,20 @@ while game:
     # Colisão entre player e bloco
     for bloco in platforms_horizont:
         if pygame.sprite.collide_mask(player, bloco):
-            print("colidiu")
+            
             if player.speedy > 0:
                 player.rect.y -= player.speedy
                 
     for bloco in platforms_vert:
         if pygame.sprite.collide_mask(player, bloco):
-            print("colidiu vertical")
+     
             # if player.speedx > 0:
             player.rect.right -= player.speedx
             if player.speedy > 0:
                 player.rect.y -= player.speedy
             # if player.speedx < 0:
                 # player.rect.left = bloco.rect.right - 70
-    print(camera_x)
+    
     # Desenha as plataformas para ver durante o desenvolvimento
     for bloco in blocos_horizont:
         pygame.draw.rect(window, (0, 255, 0), (bloco.x - camera_x, bloco.y - camera_y, bloco.width, bloco.height))
