@@ -12,11 +12,16 @@ rect = pygame.Rect
 blocos_horizont = [rect(0,440, 335, 10),rect(195,590,150,10),rect(94,729,360,10),rect(445,630,430,10),rect(880,530,210,10),rect(1090,630,300,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,340,10),rect(2090,630,200,10)] 
 blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1750,440,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
 # carregar assets
+GRAVIDADE = 3
 assets = load_assets()
 STILL = 0
 WALK = 1
 WALK_BACK = 2
 SHOT = 3
+JUMP = 4
+FALLING = 5
+RECHARGE = 6
+HURT = 7
 # Classe plataforma
 class Platform(pygame.sprite.Sprite):
     def __init__(self,position,size):
@@ -36,12 +41,17 @@ class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
         pygame.sprite.Sprite.__init__(self)
 
-        
+        # Animacões
         self.animations = {
             STILL: assets['personagem'][0:7],
             WALK: assets['andar'][0:10],
             WALK_BACK: assets['andar'][0:9],
-            SHOT: assets['atira'][1:3]
+            SHOT: assets['atira'][1:3],
+            JUMP: assets['pular'][0:6],
+            FALLING: assets['pular'][6:11],
+            RECHARGE: assets['recarga'][0:18],
+            HURT: assets['ferido'][0:5]
+
         }
         
         
@@ -56,19 +66,35 @@ class Player(pygame.sprite.Sprite):
         self.rect.centerx = 240
         self.rect.bottom = 35
         self.speedx = 0
-        self.speedy = 6
+        self.speedy = 0
         self.assets = assets
         
         self.last_update = pygame.time.get_ticks()
         self.frame_ticks = 200
- 
+        self.animation_ticks = {
+                STILL: 300,      # Animacao STILL com 500
+                WALK: 100,       # Animacao WALK com 100
+                WALK_BACK: 100,  # Animacao WALK_BACK com 100
+                SHOT: 500,       # Animacao SHOT com 150
+                JUMP: 100,       # Animacao JUMP com 250                    
+                RECHARGE: 300,   # Animacao RECHARGE com 300
+                HURT: 200,       # Animacao HURT com 200
+                FALLING: 200     # Animacao FALLING com 200
+                }
     
     def update(self):
+        # Gravidade
+        self.speedy += GRAVIDADE
+        
+        if self.speedy > 0:
+            self.state = FALLING
+        
+        # Verifica os ticks
         now = pygame.time.get_ticks()
 
         # Verifica quantos ticks se passaram desde a ultima mudança de frame.
         elapsed_ticks = now - self.last_update
-
+        self.frame_ticks = self.animation_ticks.get(self.state, 200)
         # Se já está na hora de mudar de imagem...
         if elapsed_ticks > self.frame_ticks:
 
@@ -82,16 +108,21 @@ class Player(pygame.sprite.Sprite):
             self.animation = self.animations[self.state]
             
             # Reinicia a animação caso o índice da imagem atual seja inválido
+            
             if self.frame >= len(self.animation):
                 self.frame = 0
+            self.image = self.animation[self.frame]
+            
+            
             
             # Armazena a posição do centro da imagem
             center = self.rect.center
             # Atualiza imagem atual
-            self.image = self.animation[self.frame]
+            
             # Atualiza os detalhes de posicionamento
             self.rect = self.image.get_rect()
             self.rect.center = center
+        
         self.rect.x += self.speedx
         self.rect.y += self.speedy
 
@@ -103,6 +134,11 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = -70
         if self.rect.bottom > alt_fundo - self.rect.height:
             self.rect.bottom = alt_fundo - self.rect.height
+    def jump(self):
+        # Só pode pular se ainda não estiver pulando ou caindo
+        if self.state == STILL:
+            self.speedy -= 40
+            self.state = JUMP
 
 player = Player(assets)
 
@@ -131,6 +167,7 @@ while game:
                 player.state = WALK_BACK
             if event.key == pygame.K_w:
                 player.speedy -= 14
+                
             if event.key == pygame.K_s:
                 player.speedy += 4
             if event.key == pygame.K_SPACE:
@@ -146,6 +183,7 @@ while game:
                 player.state = STILL
             if event.key == pygame.K_w:
                 player.speedy += 14
+                player.state = STILL
             if event.key == pygame.K_s:
                 player.speedy -= 4
             if event.key == pygame.K_SPACE:
