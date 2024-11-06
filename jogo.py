@@ -9,10 +9,11 @@ window = pygame.display.set_mode((LARG,ALT))
 pygame.display.set_caption('Máfia 5')
 rect = pygame.Rect
 # blocos para haver colisão
-blocos_horizont = [rect(0,440, 335, 10),rect(195,590,150,10),rect(94,729,360,10),rect(445,630,430,10),rect(880,530,210,10),rect(1090,630,300,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,340,10),rect(2090,630,200,10)] 
-blocos_vert = [rect(440,650,10,100),rect(875,530,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1750,440,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
+blocos_horizont = [rect(0,440, 335, 10),rect(195,590,150,10),rect(94,729,360,10),rect(445,630,430,10),rect(880,530,213,10),rect(1090,630,300,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,340,10),rect(2090,630,200,10)] 
+blocos_vert = [rect(440,650,10,100),rect(875,540,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1746,445,10,60),rect(2090,500,10,150),rect(2280,630,10,200)]
 # carregar assets
-GRAVIDADE = 3
+GRAVIDADE = 0
+
 assets = load_assets()
 STILL = 0
 WALK = 1
@@ -47,8 +48,8 @@ class Player(pygame.sprite.Sprite):
             WALK: assets['andar'][0:10],
             WALK_BACK: assets['andar'][0:9],
             SHOT: assets['atira'][1:3],
-            JUMP: assets['pular'][0:6],
-            FALLING: assets['pular'][6:11],
+            JUMP: assets['pular'][:6],
+            FALLING: assets['pular'][5:6],
             RECHARGE: assets['recarga'][0:18],
             HURT: assets['ferido'][0:5]
 
@@ -71,15 +72,17 @@ class Player(pygame.sprite.Sprite):
         
         self.last_update = pygame.time.get_ticks()
         self.frame_ticks = 200
+
+        # Ticks de cada animacao
         self.animation_ticks = {
-                STILL: 300,      # Animacao STILL com 500
-                WALK: 100,       # Animacao WALK com 100
-                WALK_BACK: 100,  # Animacao WALK_BACK com 100
-                SHOT: 500,       # Animacao SHOT com 150
-                JUMP: 100,       # Animacao JUMP com 250                    
-                RECHARGE: 300,   # Animacao RECHARGE com 300
-                HURT: 200,       # Animacao HURT com 200
-                FALLING: 200     # Animacao FALLING com 200
+                STILL: 300,      
+                WALK: 100,      
+                WALK_BACK: 100,  
+                SHOT: 500,       
+                JUMP: 100,                    
+                RECHARGE: 300,   
+                HURT: 200,       
+                FALLING: 200     
                 }
     
     def update(self):
@@ -88,6 +91,9 @@ class Player(pygame.sprite.Sprite):
         
         if self.speedy > 0:
             self.state = FALLING
+        
+        self.on_ground = False
+        
         
         # Verifica os ticks
         now = pygame.time.get_ticks()
@@ -125,7 +131,7 @@ class Player(pygame.sprite.Sprite):
         
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-
+        # Nao deixar o boneco passar da tela
         if self.rect.right > larg_fundo :
             self.rect.right = larg_fundo
         if self.rect.left < -60:
@@ -137,9 +143,9 @@ class Player(pygame.sprite.Sprite):
     def jump(self):
         # Só pode pular se ainda não estiver pulando ou caindo
         if self.state == STILL:
-            self.speedy -= 40
+            self.speedy -= 15
             self.state = JUMP
-
+        
 player = Player(assets)
 
 
@@ -164,14 +170,13 @@ while game:
                 player.state = WALK
             if event.key == pygame.K_a:
                 player.speedx -= 4
-                player.state = WALK_BACK
             if event.key == pygame.K_w:
-                player.speedy -= 14
-                
+                player.speedy -= 4
             if event.key == pygame.K_s:
                 player.speedy += 4
             if event.key == pygame.K_SPACE:
                 player.state = SHOT
+                
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
             # Dependendo da tecla, altera a velocidade.
@@ -180,23 +185,19 @@ while game:
                 player.state = STILL
             if event.key == pygame.K_a:
                 player.speedx += 4
-                player.state = STILL
             if event.key == pygame.K_w:
-                player.speedy += 14
-                player.state = STILL
+                player.speedy += 4
             if event.key == pygame.K_s:
                 player.speedy -= 4
             if event.key == pygame.K_SPACE:
-                player.speedy = STILL   
+                player.state = STILL
+    
+    
     
     # posiciona a camera
     camera_x = player.rect.centerx - LARG // 2
     camera_y = player.rect.centery - ALT // 2
     
-    
-        
-    
-
     # limita a camera 
     camera_x = max(0, min(camera_x, larg_fundo - LARG)) 
     camera_y = max(0, min(camera_y, alt_fundo - ALT))
@@ -210,7 +211,7 @@ while game:
     window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
     player.update()
     
-    
+    print(player.state)
         
     
     # Colisão entre player e bloco
@@ -218,7 +219,7 @@ while game:
         if pygame.sprite.collide_mask(player, bloco):
             if player.speedy > 0:
                 player.rect.y -= player.speedy
-            
+                
     for bloco in platforms_vert:
         if pygame.sprite.collide_mask(player, bloco):
             # if player.speedx > 0:
