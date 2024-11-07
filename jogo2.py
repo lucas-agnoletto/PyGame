@@ -31,6 +31,9 @@ STOP_SHOOTING = 9
 # Medidas do background
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
+
+fonte = pygame.font.Font(None, 74)
+
 # Classe plataforma
 class Platform(pygame.sprite.Sprite):
     def __init__(self,position,size):
@@ -65,9 +68,10 @@ class Player(pygame.sprite.Sprite):
 
         }
         self.municao = 30
-        self.JUMPING = False
+        self.recarga = False
         self.direction = True
         self.state = STILL
+        self.start_recarga = pygame.time.get_ticks()
         # Define animação atual
         self.animation = self.animations[self.state]
         # Inicializa o primeiro quadro da animação
@@ -80,7 +84,7 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
         self.speedy = 0
         self.assets = assets
-        
+        self.recarga_ticks = 1500 
         self.last_update = pygame.time.get_ticks()
         self.frame_ticks = 200
 
@@ -151,11 +155,13 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += self.speedx
         self.rect.y += self.speedy
         # Nao deixar o boneco passar da tela
-
+         
         if self.rect.top < -70:
             self.rect.top = -70
         if self.rect.bottom > alt_fundo + self.rect.height:
             self.rect.bottom = alt_fundo + self.rect.height
+
+        # Colisão entre player e bloco
         for bloco in platforms_horizont:
             if pygame.sprite.collide_mask(self, bloco):
                 
@@ -170,36 +176,53 @@ class Player(pygame.sprite.Sprite):
 
                 if self.speedx > 0 or self.speedx < 0:
                     self.state = WALK
-              
+        
         for bloco in platforms_vert:
             if pygame.sprite.collide_mask(self, bloco):
                 self.rect.right -= self.speedx
                 # if player.speedy > 0:
                 self.rect.y -= self.speedy
                 self.speedy = 0
+        
+            
     # Método de pulo
     def jump(self):
         # Só pode pular se ainda não estiver pulando ou caindo
         if self.state == STILL or self.state == WALK :
                 self.speedy = -20
                 self.state = JUMP
-                self.JUMPING = True
     
     # Método para atirar
     def shot(self):
-        if self.municao > 0:
-            self.state = SHOT
-            self.municao -= 1
-        if self.municao <= 0:
-            self.state = RECHARGE
-            self.municao += 30
+        now = pygame.time.get_ticks()  # Obtém o tempo atual em milissegundos
 
+        # Se houver munição disponível e não estiver recarregando
+        if self.municao > 0 and not self.recarga:
+            self.state = SHOT  # Defina o estado como "atirando"
+            self.municao -= 1  # Reduz a munição em 1
+            print(f"Munição restante: {self.municao}")
+        
+        # Se a munição acabar, inicie a recarga
+        if self.municao <= 0 and not self.recarga:
+            self.start_recarga = now  # Marca o tempo em que a recarga começa
+            self.recarga = True  # Começa o processo de recarga
+            self.state = RECHARGE  # Altera o estado para "recarregando"
+            print("Iniciando recarga...")
+
+        # Verifica se o tempo de recarga já passou
+        if self.recarga and now - self.start_recarga >= self.recarga_ticks:
+            self.municao = 30  # Recarrega 30 unidades de munição
+            self.recarga = False  # Termina a recarga
+            self.state = STILL
+            print(f"Recarga concluída. Munição: {self.municao}")
 
     
         
 
-        
+# chamando a classe player
 player = Player(assets)
+
+ 
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
 clock = pygame.time.Clock()
@@ -225,7 +248,7 @@ while game:
                 player.jump()
             if event.key == pygame.K_SPACE:
                 player.shot()
-                player.municao -= 1
+        
                 
                 
         # Verifica se soltou alguma tecla.
@@ -253,6 +276,8 @@ while game:
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
     window.blit(assets['munição'],(35,100))
     window.blit(assets['vida'],(50,50))
+    texto = fonte.render(str(player.municao), True, (255,255,255))
+    window.blit(texto,(100,115))
     # pygame.draw.rect(window, (0,0,0), player.rect)
 
     window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
