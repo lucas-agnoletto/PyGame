@@ -76,4 +76,11 @@ def load_assets():
     fundo_alt = int(fundo.get_height()*3)
     # Background
     assets['fundo'] = pygame.transform.scale(fundo,(fundo_larg,fundo_alt))
+    # municao
+    municao = pygame.image.load('assets/img/Munição(gangster).png').convert_alpha()
+    municao = pygame.transform.scale(municao,(municao.get_width()*2,municao.get_height()*2))
+    assets['munição'] = municao
+    vida = pygame.image.load('assets/img/Vida.png').convert_alpha()
+    vida = pygame.transform.scale(vida,(vida.get_width()*2,vida.get_height()*2))
+    assets['vida'] = vida
     return assets

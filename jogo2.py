@@ -12,7 +12,7 @@ rect = pygame.Rect
 blocos_horizont = [rect(0,632,80,10),rect(0,440, 335, 10),rect(195,590,145,10),rect(94,729,360,10),rect(445,630,430,10),rect(875,530,217,10),rect(1090,630,300,10),rect(1200,260,390,10),rect(1350,530,60,10),rect(1405,440,350,10),rect(1750,490,345,10),rect(2090,630,200,10),rect(2600,530,60,10),rect(2650,490,530,10)] 
 blocos_vert = [rect(75,640,10,100),rect(445,640,10,100),rect(875,540,10,100),rect(1090,535,10,100),rect(1350,530,10,100),rect(1400,445,10,100),rect(1746,445,10,60),rect(2090,500,10,150),rect(2280,630,10,200),rect(2600,542,10,500),rect(2650,500,10,40)]
 # carregar assets
-GRAVIDADE = 0.8
+GRAVIDADE = 0.6
 
 assets = load_assets()
 
@@ -64,6 +64,7 @@ class Player(pygame.sprite.Sprite):
             STOP_SHOOTING: assets['stop_atira'][1:]
 
         }
+        self.municao = 30
         self.JUMPING = False
         self.direction = True
         self.state = STILL
@@ -89,7 +90,7 @@ class Player(pygame.sprite.Sprite):
                 WALK: 100,      
                 WALK_BACK: 100,  
                 SHOT: 50,       
-                JUMP: 50,                    
+                JUMP: 150,                    
                 RECHARGE: 300,   
                 HURT: 200,       
                 FALLING: 150,
@@ -155,6 +156,27 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = -70
         if self.rect.bottom > alt_fundo + self.rect.height:
             self.rect.bottom = alt_fundo + self.rect.height
+        for bloco in platforms_horizont:
+            if pygame.sprite.collide_mask(self, bloco):
+                
+                if self.state != SHOT:
+                    self.state = STILL
+                self.rect.y -= self.speedy
+                self.speedy = 0
+
+                if self.speedy > 0:
+                    self.state = LANDING
+                    
+
+                if self.speedx > 0 or self.speedx < 0:
+                    self.state = WALK
+              
+        for bloco in platforms_vert:
+            if pygame.sprite.collide_mask(self, bloco):
+                self.rect.right -= self.speedx
+                # if player.speedy > 0:
+                self.rect.y -= self.speedy
+                self.speedy = 0
     # Método de pulo
     def jump(self):
         # Só pode pular se ainda não estiver pulando ou caindo
@@ -162,7 +184,19 @@ class Player(pygame.sprite.Sprite):
                 self.speedy = -20
                 self.state = JUMP
                 self.JUMPING = True
-                
+    
+    # Método para atirar
+    def shot(self):
+        if self.municao > 0:
+            self.state = SHOT
+            self.municao -= 1
+        if self.municao <= 0:
+            self.state = RECHARGE
+            self.municao += 30
+
+
+    
+        
 
         
 player = Player(assets)
@@ -179,7 +213,7 @@ while game:
             
         if event.type == pygame.KEYDOWN:
             # Dependendo da tecla, altera a velocidade.
-            if event.key == pygame.K_d and player.state != SHOT:
+            if event.key == pygame.K_d:
                 player.speedx += 4
                 player.state = WALK
                 player.direction = True
@@ -189,10 +223,9 @@ while game:
                 player.direction = False
             if event.key == pygame.K_w:
                 player.jump()
-            if event.key == pygame.K_s:
-                player.speedy += 4
             if event.key == pygame.K_SPACE:
-                player.state = SHOT
+                player.shot()
+                player.municao -= 1
                 
                 
         # Verifica se soltou alguma tecla.
@@ -218,6 +251,8 @@ while game:
     
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
+    window.blit(assets['munição'],(35,100))
+    window.blit(assets['vida'],(50,50))
     # pygame.draw.rect(window, (0,0,0), player.rect)
 
     window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
@@ -227,27 +262,7 @@ while game:
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
     
     player.update()
-
-    for bloco in platforms_horizont:
-        if pygame.sprite.collide_mask(player, bloco):
-            
-            if player.state != SHOT:
-                player.state = STILL
-            player.rect.y -= player.speedy
-            player.speedy = 0
-
-            if player.speedy > 0:
-                player.state = LANDING
-                
-
-            if player.speedx > 0 or player.speedx < 0:
-                player.state = WALK
-              
-    for bloco in platforms_vert:
-        if pygame.sprite.collide_mask(player, bloco):
-            player.rect.right -= player.speedx
-            # if player.speedy > 0:
-            player.rect.y -= player.speedy
-            player.speedy = 0
+    
+    
     pygame.display.update()  # Atualiza a tela
     
