@@ -38,7 +38,9 @@ def load_assets():
     ferido = load_spritesheet(ferido,1,5)
     recarga = pygame.image.load('assets/img/Gangster(recarga).png').convert_alpha()
     recarga = load_spritesheet(recarga,1,17)
-    
+    morto = pygame.image.load('assets/img/Gangster(morto).png').convert_alpha()
+    morto = load_spritesheet(morto,1,5)
+
     # Define o tamanho do personagem
     escala = 1.5  
     nova_largura = int(personagem[0].get_width() * escala)
@@ -59,6 +61,7 @@ def load_assets():
     # Ferido
     for i in range(len(ferido)):
         ferido[i] = pygame.transform.scale(ferido[i], (nova_largura, nova_altura))
+        morto[i] = pygame.transform.scale(morto[i], (nova_largura, nova_altura))
     # Recarga
     for i in range(len(recarga)):
         recarga[i] = pygame.transform.scale(recarga[i], (nova_largura, nova_altura))
@@ -70,17 +73,22 @@ def load_assets():
     assets['pular'] = pular
     assets['ferido'] = ferido
     assets['recarga'] = recarga
+    assets['morto'] = morto
     # Fundo ajustes
     fundo = pygame.image.load('assets/img/fundo.png').convert_alpha()
     fundo_larg = int(fundo.get_width()*3)
     fundo_alt = int(fundo.get_height()*3)
     # Background
     assets['fundo'] = pygame.transform.scale(fundo,(fundo_larg,fundo_alt))
-    # municao
+    # Para interface
     municao = pygame.image.load('assets/img/Munição(gangster).png').convert_alpha()
     municao = pygame.transform.scale(municao,(municao.get_width()*2,municao.get_height()*2))
     assets['munição'] = municao
     vida = pygame.image.load('assets/img/Vida.png').convert_alpha()
     vida = pygame.transform.scale(vida,(vida.get_width()*2,vida.get_height()*2))
     assets['vida'] = vida
+    assets['bullet'] = pygame.image.load('assets/img/Munição(gangster).png').convert_alpha()
+    # Sons
+    assets['shot_sound'] = pygame.mixer.Sound('assets/som/Tiro.ogg')
+    assets['trilha_sonora'] = pygame.mixer.Sound('assets/som/Track06.ogg')
     return assets

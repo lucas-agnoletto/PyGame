@@ -3,7 +3,8 @@ from assets import load_assets
 from config import FPS, ALT, LARG
 
 pygame.init()
-
+pygame.mixer.init()
+pygame.mixer.music.load('assets/som/Track01.ogg')
 
 window = pygame.display.set_mode((LARG,ALT))
 pygame.display.set_caption('Máfia 5')
@@ -24,7 +25,7 @@ SHOT = 3
 JUMP = 4
 FALLING = 5
 LANDING = 6
-RECHARGE = 7
+RELOAD = 7
 HURT = 8
 STOP_SHOOTING = 9
 
@@ -59,15 +60,15 @@ class Player(pygame.sprite.Sprite):
             WALK: assets['andar'][0:10],
             WALK_BACK: assets['andar'][0:9:-1],
             SHOT: assets['atira'][1:3],
-            JUMP: assets['pular'][:6],
+            JUMP: assets['pular'][0:],
             FALLING: assets['pular'][5:6],
             LANDING: assets['pular'][8:],
-            RECHARGE: assets['recarga'][0:18],
+            RELOAD: assets['recarga'][0:18],
             HURT: assets['ferido'][0:5],
             STOP_SHOOTING: assets['stop_atira'][1:]
 
         }
-        self.municao = 30
+        self.municao = 60
         self.recarga = False
         self.direction = True
         self.state = STILL
@@ -80,36 +81,35 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.mask.get_rect()
         self.rect.centerx = 240
-        self.rect.bottom = 35
+        self.rect.bottom = blocos_horizont[2].centerx
         self.speedx = 0
         self.speedy = 0
         self.assets = assets
-        self.recarga_ticks = 1500 
+        self.recarga_ticks = 2500 
+        self.shot_ticks = 100
+        self.last_shot = pygame.time.get_ticks()
         self.last_update = pygame.time.get_ticks()
         self.frame_ticks = 200
-
+        self.highest_y = self.rect.bottom
         # Ticks de cada animacao
         self.animation_ticks = {
                 STILL: 100,
                 WALK: 100,      
                 WALK_BACK: 100,  
                 SHOT: 50,       
-                JUMP: 150,                    
-                RECHARGE: 300,   
+                JUMP: 100,                    
+                RELOAD: 150,   
                 HURT: 200,       
-                FALLING: 150,
+                FALLING: 500,
                 LANDING:10,
                 STOP_SHOOTING:100   
 
                 }
     
     def update(self):
-        # Gravidade        
-        if self.speedy > 0:
-            self.state = FALLING
-
+        # Gravidade       
         self.speedy += GRAVIDADE
-        self.on_ground = False
+        
         
         # Verifica os ticks
         now = pygame.time.get_ticks()
@@ -134,11 +134,14 @@ class Player(pygame.sprite.Sprite):
             if self.frame >= len(self.animation):
                 self.frame = 0
            
-            
+        
             
             # Obtém o quadro da animação atual
         self.image = self.animation[self.frame]
 
+        
+            
+        
         # Se a direção for 'False', inverte a imagem horizontalmente
         if not self.direction:
             self.image = pygame.transform.flip(self.image, True, False)
@@ -155,68 +158,85 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += self.speedx
         self.rect.y += self.speedy
         # Nao deixar o boneco passar da tela
-         
+        
         if self.rect.top < -70:
             self.rect.top = -70
         if self.rect.bottom > alt_fundo + self.rect.height:
             self.rect.bottom = alt_fundo + self.rect.height
 
+        if self.speedy < 0:
+            self.highest_y = self.rect.bottom
+        
         # Colisão entre player e bloco
+        # Horizontais
         for bloco in platforms_horizont:
             if pygame.sprite.collide_mask(self, bloco):
                 
-                if self.state != SHOT:
-                    self.state = STILL
-                self.rect.y -= self.speedy
-                self.speedy = 0
-
+                # Se pular e tiver um bloco em cima, nao é travado pelo bloco
                 if self.speedy > 0:
-                    self.state = LANDING
-                    
+                    if self.highest_y <= bloco.rect.top:
+                        
+                        self.rect.bottom = bloco.rect.top
+
+                        self.highest_y = self.rect.bottom
+                        
+                        self.speedy = 0
+                        
+                        
 
                 if self.speedx > 0 or self.speedx < 0:
                     self.state = WALK
-        
+            
+        # Verticais:
         for bloco in platforms_vert:
             if pygame.sprite.collide_mask(self, bloco):
                 self.rect.right -= self.speedx
-                # if player.speedy > 0:
-                self.rect.y -= self.speedy
-                self.speedy = 0
+                if player.speedy > 0:
+                    self.rect.y -= self.speedy
+                    self.speedy = 0
+    
         
-            
+
+
+        
+
     # Método de pulo
     def jump(self):
         # Só pode pular se ainda não estiver pulando ou caindo
         if self.state == STILL or self.state == WALK :
-                self.speedy = -20
+                self.speedy = -18
                 self.state = JUMP
+        
     
     # Método para atirar
     def shot(self):
-        now = pygame.time.get_ticks()  # Obtém o tempo atual em milissegundos
 
+        now = pygame.time.get_ticks()  # Obtém o tempo atual em milissegundos
+        elapsed_ticks = now - self.last_shot
         # Se houver munição disponível e não estiver recarregando
-        if self.municao > 0 and not self.recarga:
+        if self.municao > 0 and not self.recarga and elapsed_ticks > self.shot_ticks :
+            self.last_shot = now
             self.state = SHOT  # Defina o estado como "atirando"
             self.municao -= 1  # Reduz a munição em 1
-            print(f"Munição restante: {self.municao}")
+            assets['shot_sound'].set_volume(0.1)
+            assets['shot_sound'].play()
+
         
         # Se a munição acabar, inicie a recarga
         if self.municao <= 0 and not self.recarga:
             self.start_recarga = now  # Marca o tempo em que a recarga começa
             self.recarga = True  # Começa o processo de recarga
-            self.state = RECHARGE  # Altera o estado para "recarregando"
-            print("Iniciando recarga...")
-
+             
+            
         # Verifica se o tempo de recarga já passou
-        if self.recarga and now - self.start_recarga >= self.recarga_ticks:
-            self.municao = 30  # Recarrega 30 unidades de munição
-            self.recarga = False  # Termina a recarga
-            self.state = STILL
-            print(f"Recarga concluída. Munição: {self.municao}")
-
-    
+        if self.recarga:
+            self.state = RELOAD
+            if now - self.start_recarga > self.recarga_ticks:
+                self.municao = 60  # Recarrega munição
+                self.recarga = False  # Termina a recarga
+                self.state = STILL
+                
+        
         
 
 # chamando a classe player
@@ -228,12 +248,13 @@ alt_fundo = assets['fundo'].get_height()
 clock = pygame.time.Clock()
 
 game = True
+pygame.mixer.music.play(loops=-1)
 while game:
     clock.tick(FPS) 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
-            
+        key = pygame.key.get_pressed()
         if event.type == pygame.KEYDOWN:
             # Dependendo da tecla, altera a velocidade.
             if event.key == pygame.K_d:
@@ -246,10 +267,9 @@ while game:
                 player.direction = False
             if event.key == pygame.K_w:
                 player.jump()
-            if event.key == pygame.K_SPACE:
-                player.shot()
-        
-                
+            
+        if key[pygame.K_SPACE]:
+            player.shot()
                 
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
@@ -264,7 +284,10 @@ while game:
                 player.state = STILL
             if event.key == pygame.K_SPACE:
                 player.state = STOP_SHOOTING
+        
 
+    if player.rect.bottom >= alt_fundo + player.rect.height:
+        game = False
     camera_x = player.rect.centerx - LARG // 2
     camera_y = player.rect.centery - ALT // 2
     
