@@ -25,6 +25,7 @@ def load_spritesheet(spritesheet, rows, columns):
     return sprites
 def load_assets():
     assets = {}
+    # ASSETS DO PLAYER:
     # Carrega e corta sprites
     personagem = pygame.image.load('assets/img/Gangster.png').convert_alpha()
     personagem = load_spritesheet(personagem,1,6)
@@ -70,6 +71,7 @@ def load_assets():
     assets['andar'] = andar
     assets['personagem'] = personagem
     assets['atira'] = atira
+    assets['stop_shot'] = [atira[3]]
     assets['pular'] = pular
     assets['ferido'] = ferido
     assets['recarga'] = recarga
@@ -91,4 +93,36 @@ def load_assets():
     # Sons
     assets['shot_sound'] = pygame.mixer.Sound('assets/som/Tiro.ogg')
     assets['trilha_sonora'] = pygame.mixer.Sound('assets/som/Track06.ogg')
+
+    # ASSETS DO INIMIGO1:
+    # carregando os assets
+    inimigo1 = pygame.image.load('assets/img/Inimigo1.png').convert_alpha()
+    inimigo1 = load_spritesheet(inimigo1,1,12)
+    ata_inimigo1 = pygame.image.load('assets/img/Inimigo1(ataque).png').convert_alpha()
+    ata_inimigo1 = load_spritesheet(ata_inimigo1,1,6)
+    hurt_inimigo1 = pygame.image.load('assets/img/Inimigo1(machucado).png').convert_alpha()
+    hurt_inimigo1 = load_spritesheet(hurt_inimigo1,1,4)
+    morto_inimigo1 = pygame.image.load('assets/img/Inimigo1(morto).png').convert_alpha()
+    morto_inimigo1 = load_spritesheet(morto_inimigo1,1,5)
+     
+     # Define o tamanho do inimigo
+    escala = 1.5  
+    nova_largura = int(inimigo1[0].get_width() * escala)
+    nova_altura = int(inimigo1[0].get_height() * escala)
+
+    # Ajustando a escala da imagem
+    for i in range(len(inimigo1)):
+        inimigo1[i] = pygame.transform.scale(inimigo1[i], (nova_largura, nova_altura))
+    for i in range(len(ata_inimigo1)):
+        ata_inimigo1[i] = pygame.transform.scale(ata_inimigo1[i], (nova_largura, nova_altura))
+    for i in range(len(hurt_inimigo1)):
+        hurt_inimigo1[i] = pygame.transform.scale(hurt_inimigo1[i], (nova_largura, nova_altura))
+    for i in range(len(morto_inimigo1)):
+        morto_inimigo1[i] = pygame.transform.scale(morto_inimigo1[i], (nova_largura, nova_altura))
+    
+    # Adicionando
+    assets['inimigo1'] = inimigo1
+    assets['ata_inimigo1'] = ata_inimigo1
+    assets['hurt_e1'] = hurt_inimigo1
+    assets['morto_e1'] = morto_inimigo1
     return assets

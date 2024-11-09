@@ -17,7 +17,7 @@ GRAVIDADE = 0.6
 
 assets = load_assets()
 
-
+# num das animaçoes do player
 STILL = 0
 WALK = 1
 WALK_BACK = 2
@@ -28,7 +28,12 @@ LANDING = 6
 RELOAD = 7
 HURT = 8
 STOP_SHOOTING = 9
-
+DEAD = 10
+# num da animaçoes do inimigo1
+STILL_E1 = 0
+SHOT_E1 = 1
+HURT_E1 = 2
+DEAD_E1 = 3
 # Medidas do background
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
@@ -49,26 +54,101 @@ platforms_vert = []
 for bloco in blocos_vert:
     platforms_vert.append(Platform((bloco.x, bloco.y), (bloco.width, bloco.height)))
 
+# Classe INIMIGO1
+
+class Enemie1(pygame.sprite.Sprite):
+    def __init__(self,assets):
+        pygame.sprite.Sprite.__init__(self)
+        
+        #Animações inimigo1
+        self.animations = {
+            STILL_E1: assets['inimigo1'][0:],
+            SHOT_E1: assets['ata_inimigo1'][0:],
+            HURT_E1: assets['hurt_e1'][0:],
+            DEAD_E1: assets['morto_e1'][0:]
+        }
+        self.state = STILL_E1
+        self.animation = self.animations[self.state]
+        self.frame = 0
+        self.image = self.animation[self.frame]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.mask.get_rect()
+        self.rect.centerx = 1900
+        self.rect.centery = 300
+        self.speedx = 0
+        self.speedy = 0
+        self.assets = assets
+        self.last_update = pygame.time.get_ticks()
+        self.p_distance = self.rect.centerx - player.rect.centerx
+        
+
+        self.animation_ticks = {
+                STILL_E1: 100,
+                SHOT_E1: 100,
+                HURT_E1: 100,
+                DEAD_E1: 100,
+                }
+        
+    def update(self):
+        # Gravidade
+        self.speedy += GRAVIDADE
+        now = pygame.time.get_ticks()
+    
+        self.last_update = pygame.time.get_ticks()
+
+        # Verifica quantos ticks se passaram desde a ultima mudança de frame.
+        elapsed_ticks = now - self.last_update
+        self.frame_ticks = self.animation_ticks.get(self.state, 200)
+        # Se já está na hora de mudar de imagem...
+        if elapsed_ticks > self.frame_ticks:
+
+            # Marca o tick da nova imagem.
+            self.last_update = now
+
+            # Avança um quadro.
+            self.frame += 1
+
+            # Atualiza animação atual
+            self.animation = self.animations[self.state]
+            
+            # Reinicia a animação caso o índice da imagem atual seja inválido
+            
+            if self.frame >= len(self.animation):
+                self.frame = 0
+            
+            # Obtém o quadro da animação atual
+        self.image = self.animation[self.frame]
+
+        for bloco in platforms_horizont:
+            if pygame.sprite.collide_mask(self, bloco):
+                if self.speedy > 0:
+                    self.speedy = 0
+        
+        if self.p_distance <= 500:
+            self.state = SHOT_E1
+            print('atire')
+        else:
+            self.state = STILL_E1
 # Classe jogador
 class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
         pygame.sprite.Sprite.__init__(self)
-        assets['stop_atira'] = [assets['atira'][3],assets['atira'][0]]
+        
         # Animacões
         self.animations = {
             STILL: assets['personagem'][0:7],
             WALK: assets['andar'][0:10],
             WALK_BACK: assets['andar'][0:9:-1],
-            SHOT: assets['atira'][1:3],
+            SHOT: assets['atira'][0:3],
             JUMP: assets['pular'][0:],
             FALLING: assets['pular'][5:6],
             LANDING: assets['pular'][8:],
             RELOAD: assets['recarga'][0:18],
             HURT: assets['ferido'][0:5],
-            STOP_SHOOTING: assets['stop_atira'][1:]
+            STOP_SHOOTING: assets['stop_shot'][0:]
 
         }
-        self.municao = 60
+        self.municao = 50
         self.recarga = False
         self.direction = True
         self.state = STILL
@@ -98,10 +178,10 @@ class Player(pygame.sprite.Sprite):
                 WALK_BACK: 100,  
                 SHOT: 50,       
                 JUMP: 100,                    
-                RELOAD: 150,   
+                RELOAD: 140,   
                 HURT: 200,       
                 FALLING: 500,
-                LANDING:10,
+                LANDING: 10,
                 STOP_SHOOTING:100   
 
                 }
@@ -195,10 +275,6 @@ class Player(pygame.sprite.Sprite):
                     self.rect.y -= self.speedy
                     self.speedy = 0
     
-        
-
-
-        
 
     # Método de pulo
     def jump(self):
@@ -220,6 +296,7 @@ class Player(pygame.sprite.Sprite):
             self.municao -= 1  # Reduz a munição em 1
             assets['shot_sound'].set_volume(0.1)
             assets['shot_sound'].play()
+            
 
         
         # Se a munição acabar, inicie a recarga
@@ -236,12 +313,13 @@ class Player(pygame.sprite.Sprite):
                 self.recarga = False  # Termina a recarga
                 self.state = STILL
                 
-        
+
         
 
 # chamando a classe player
 player = Player(assets)
-
+# chamando a classe inimigo1
+inimigo1 = Enemie1(assets)
  
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
@@ -268,13 +346,11 @@ while game:
             if event.key == pygame.K_w:
                 player.jump()
             
-        if key[pygame.K_SPACE]:
-            player.shot()
-                
+          
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
             # Dependendo da tecla, altera a velocidade.
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_d and player.state :
                 player.speedx -= 4
                 player.state = STILL
                 player.direction = True
@@ -283,8 +359,11 @@ while game:
                 player.direction = False
                 player.state = STILL
             if event.key == pygame.K_SPACE:
-                player.state = STOP_SHOOTING
-        
+                player.state = STILL
+        if key[pygame.K_SPACE]:
+            player.shot()
+        #     player.speedx = 0
+        # print(player.speedx)
 
     if player.rect.bottom >= alt_fundo + player.rect.height:
         game = False
@@ -304,12 +383,13 @@ while game:
     # pygame.draw.rect(window, (0,0,0), player.rect)
 
     window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
-    
+    window.blit(inimigo1.image,(inimigo1.rect.centerx - camera_x,inimigo1.rect.centery - camera_y))
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
     # for bloco in blocos_vert:
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
     
     player.update()
+    inimigo1.update()
     
     
     pygame.display.update()  # Atualiza a tela
