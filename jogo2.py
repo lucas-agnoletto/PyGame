@@ -29,11 +29,14 @@ RELOAD = 7
 HURT = 8
 STOP_SHOOTING = 9
 DEAD = 10
+CORONHADA = 11
+
 # num da animaçoes do inimigo1
 STILL_E1 = 0
 SHOT_E1 = 1
 HURT_E1 = 2
 DEAD_E1 = 3
+PUNCH_E1 = 4
 # Medidas do background
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
@@ -63,14 +66,16 @@ class Enemie1(pygame.sprite.Sprite):
         #Animações inimigo1
         self.animations = {
             STILL_E1: assets['inimigo1'][0:],
-            SHOT_E1: assets['ata_inimigo1'][0:],
+            SHOT_E1: assets['ata_inimigo1'][5:],
             HURT_E1: assets['hurt_e1'][0:],
-            DEAD_E1: assets['morto_e1'][0:]
+            DEAD_E1: assets['morto_e1'][0:],
+            PUNCH_E1: assets['ata2_inimigo1'][0:]
         }
         self.state = STILL_E1
         self.animation = self.animations[self.state]
         self.frame = 0
         self.image = self.animation[self.frame]
+        
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.mask.get_rect()
         self.rect.centerx = 1900
@@ -79,7 +84,7 @@ class Enemie1(pygame.sprite.Sprite):
         self.speedy = 0
         self.assets = assets
         self.last_update = pygame.time.get_ticks()
-        self.p_distance = self.rect.centerx - player.rect.centerx
+        self.p_distance = self.rect.centerx + 60 - player.rect.centerx
         
 
         self.animation_ticks = {
@@ -87,15 +92,17 @@ class Enemie1(pygame.sprite.Sprite):
                 SHOT_E1: 100,
                 HURT_E1: 100,
                 DEAD_E1: 100,
+                PUNCH_E1: 100
                 }
         
     def update(self):
         # Gravidade
         self.speedy += GRAVIDADE
         now = pygame.time.get_ticks()
-    
-        self.last_update = pygame.time.get_ticks()
-
+        self.rect.x += self.speedx
+        
+      
+        self.p_distance = self.rect.centerx - player.rect.centerx
         # Verifica quantos ticks se passaram desde a ultima mudança de frame.
         elapsed_ticks = now - self.last_update
         self.frame_ticks = self.animation_ticks.get(self.state, 200)
@@ -118,17 +125,34 @@ class Enemie1(pygame.sprite.Sprite):
             
             # Obtém o quadro da animação atual
         self.image = self.animation[self.frame]
-
+        # Colisão
         for bloco in platforms_horizont:
             if pygame.sprite.collide_mask(self, bloco):
                 if self.speedy > 0:
                     self.speedy = 0
+
+        # Atira se o player se aproxima e flipa a imagem se estiver do outro lado
         
-        if self.p_distance <= 500:
+        if -60 < self.p_distance <= 300:
             self.state = SHOT_E1
-            print('atire')
+            self.image = pygame.transform.flip(self.image, True, False)
+            
+
+        elif  -300 <= self.p_distance < -156:
+            self.state = SHOT_E1
+            
+
+        elif -108 < self.p_distance <= -60:
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.state = PUNCH_E1
+            
+        elif -108 >= self.p_distance > -156:
+            self.state = PUNCH_E1
+            
         else:
             self.state = STILL_E1
+        
+            
 # Classe jogador
 class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
@@ -145,8 +169,8 @@ class Player(pygame.sprite.Sprite):
             LANDING: assets['pular'][8:],
             RELOAD: assets['recarga'][0:18],
             HURT: assets['ferido'][0:5],
-            STOP_SHOOTING: assets['stop_shot'][0:]
-
+            STOP_SHOOTING: assets['stop_shot'][0:],
+            CORONHADA: assets['porrada'][0:]
         }
         self.municao = 50
         self.recarga = False
@@ -182,7 +206,8 @@ class Player(pygame.sprite.Sprite):
                 HURT: 200,       
                 FALLING: 500,
                 LANDING: 10,
-                STOP_SHOOTING:100   
+                STOP_SHOOTING:100,
+                CORONHADA: 50 
 
                 }
     
@@ -345,7 +370,9 @@ while game:
                 player.direction = False
             if event.key == pygame.K_w:
                 player.jump()
-            
+            if event.key == pygame.K_j:
+                player.state = CORONHADA
+
           
         # Verifica se soltou alguma tecla.
         if event.type == pygame.KEYUP:
@@ -360,6 +387,9 @@ while game:
                 player.state = STILL
             if event.key == pygame.K_SPACE:
                 player.state = STILL
+            if event.key == pygame.K_j:
+                player.state = STILL
+
         if key[pygame.K_SPACE]:
             player.shot()
         #     player.speedx = 0
