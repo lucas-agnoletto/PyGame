@@ -135,4 +135,44 @@ def load_assets():
     assets['hurt_e1'] = hurt_inimigo1
     assets['morto_e1'] = morto_inimigo1
     assets['ata2_inimigo1'] = ata2_inimigo1
+    
+    # ASSETS DO INIMIGO2
+    inimigo2 = pygame.image.load('assets/img/Inimigo2.png').convert_alpha()
+    inimigo2 = load_spritesheet(inimigo2,1,7)
+    inimigo2_ata1 = pygame.image.load('assets/img/Inimigo2(ataque1).png').convert_alpha()
+    inimigo2_ata1 = load_spritesheet(inimigo2_ata1,1,6)
+    inimigo2_ata2 = pygame.image.load('assets/img/Inimigo2(ataque2).png').convert_alpha()
+    inimigo2_ata2 = load_spritesheet(inimigo2_ata2,1,4)
+    inimigo2_ata3 = pygame.image.load('assets/img/Inimigo2(ataque3).png').convert_alpha()
+    inimigo2_ata3 = load_spritesheet(inimigo2_ata3,1,6)
+    inimigo2_hurt = pygame.image.load('assets/img/Inimigo2(machucado).png').convert_alpha()
+    inimigo2_hurt = load_spritesheet(inimigo2_hurt,1,4)
+    inimigo2_morto = pygame.image.load('assets/img/Inimigo2(morto).png').convert_alpha()
+    inimigo2_morto = load_spritesheet(inimigo2_morto,1,5)
+    inimigo2_andando = pygame.image.load('assets/img/Inimigo2(andando).png').convert_alpha()
+    inimigo2_andando = load_spritesheet(inimigo2_andando,1,10)
+    inimigo2_correndo = pygame.image.load('assets/img/Inimigo2(correndo).png').convert_alpha()
+    inimigo2_correndo = load_spritesheet(inimigo2_correndo,1,10)
+    # ajuste escala
+    for i in range(len(inimigo2)):
+        inimigo2[i] = pygame.transform.scale(inimigo2[i], (nova_largura, nova_altura))
+    for i in range(len(inimigo2_ata1)):
+        inimigo2_ata1[i] = pygame.transform.scale(inimigo2_ata1[i], (nova_largura, nova_altura))
+        inimigo2_ata3[i] = pygame.transform.scale(inimigo2_ata3[i], (nova_largura, nova_altura))
+    for i in range(len(inimigo2_ata2)):
+        inimigo2_ata2[i] = pygame.transform.scale(inimigo2_ata2[i], (nova_largura, nova_altura))
+        inimigo2_morto[i] = pygame.transform.scale(inimigo2_morto[i], (nova_largura, nova_altura))
+    for i in range(len(inimigo2_hurt)):
+        inimigo2_hurt[i] = pygame.transform.scale(inimigo2_hurt[i], (nova_largura, nova_altura))
+    for i in range(len(inimigo2_andando)):
+        inimigo2_andando[i] = pygame.transform.scale(inimigo2_andando[i], (nova_largura, nova_altura))
+        inimigo2_correndo[i] = pygame.transform.scale(inimigo2_correndo[i], (nova_largura, nova_altura))
+    assets['inimigo2'] = inimigo2
+    assets['punch1'] = inimigo2_ata1
+    assets['punch2'] = inimigo2_ata2
+    assets['punch3'] = inimigo2_ata3
+    assets['hurt_e2'] = inimigo2_hurt
+    assets['morto_e2'] = inimigo2_morto
+    assets['andando_e2'] = inimigo2_andando
+    assets['correndo_e2'] = inimigo2_correndo
     return assets
