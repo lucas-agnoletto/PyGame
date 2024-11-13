@@ -37,6 +37,16 @@ SHOT_E1 = 1
 HURT_E1 = 2
 DEAD_E1 = 3
 PUNCH_E1 = 4
+# num das animações do inimigo2
+STILL_E2 = 0
+HURT_E2 = 2
+DEAD_E2 = 3
+PUNCH1 = 4
+PUNCH2 = 5
+PUNCH3 = 6
+WALK_E2 = 7
+RUN_E2 = 8
+STANCE_E2 = 9
 # Medidas do background
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
@@ -138,7 +148,7 @@ class Enemie1(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(self.image, True, False)
             
 
-        elif  -300 <= self.p_distance < -156:
+        elif  -300 <= self.p_distance <= -156:
             self.state = SHOT_E1
             
 
@@ -152,7 +162,119 @@ class Enemie1(pygame.sprite.Sprite):
         else:
             self.state = STILL_E1
         
+class Enemie2(pygame.sprite.Sprite):
+    def __init__(self,assets):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.animations = {
+            STILL_E2: assets['inimigo2'][0:],
+            PUNCH1: assets['punch1'][0:],
+            HURT_E2: assets['hurt_e2'][0:],
+            DEAD_E2: assets['morto_e1'][0:],
+            PUNCH2: assets['punch2'][0:],
+            PUNCH3: assets['punch3'][0:],
+            WALK_E2: assets['andando_e2'][0:],
+            RUN_E2: assets['correndo_e2'][0:],
+            STANCE_E2: assets['punch3'][0:3]
+        }
+        self.state = STILL_E2
+        self.animation = self.animations[self.state]
+        self.frame = 0
+        self.image = self.animation[self.frame]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.mask.get_rect()
+        self.rect.centerx = 1200
+        self.rect.centery = 440
+        self.speedx = 0
+        self.speedy = 0
+        self.assets = assets
+        self.p_distancex = self.rect.centerx + 60 - player.rect.centerx
+        self.p_distancey = self.rect.centery - player.rect.centery
+        self.last_update = pygame.time.get_ticks()
+        self.i = 0 
+        self.punches_tick = 500
+        self.last_punch = pygame.time.get_ticks()
+        self.animation_ticks = {
+                STILL_E2: 100,
+                PUNCH1: 80,
+                PUNCH2: 80,
+                PUNCH3: 80,
+                HURT_E2: 100,
+                DEAD_E1: 100,
+                WALK_E2: 100,
+                RUN_E2: 100
+                }
+    def update(self):
+        self.speedy += GRAVIDADE
+        now = pygame.time.get_ticks()
+        
+        self.rect.centerx += self.speedx
+        self.p_distancex = self.rect.centerx + 60 - player.rect.centerx
+        self.p_distancey = self.rect.centery - player.rect.centery
+        
+        # Verifica quantos ticks se passaram desde a ultima mudança de frame.
+        elapsed_ticks = now - self.last_update
+        self.frame_ticks = self.animation_ticks.get(self.state, 200)
+        # Se já está na hora de mudar de imagem...
+        if elapsed_ticks > self.frame_ticks:
+
+            # Marca o tick da nova imagem.
+            self.last_update = now
+
+            # Avança um quadro.
+            self.frame += 1
+
+            # Atualiza animação atual
+            self.animation = self.animations[self.state]
             
+            # Reinicia a animação caso o índice da imagem atual seja inválido
+            
+            if self.frame >= len(self.animation):
+                self.frame = 0
+            
+            
+        socos = [PUNCH1,PUNCH2,PUNCH3]
+        if now - self.last_punch > self.punches_tick:
+            self.i += 1
+            if self.i > 2:
+                self.i = 0
+            self.last_punch = now
+        self.image = self.animation[self.frame]
+        self.image = pygame.transform.flip(self.image, True, False)
+        print(self.p_distancex)
+        if self.rect.y + 94 == player.rect.y:
+            if  0 < self.p_distancex < 200:
+                self.speedx -= 0.1
+                self.state = RUN_E2
+                
+            elif -100 > self.p_distancex:
+                self.image = self.image = self.animation[self.frame]
+                self.speedx += 0.1
+                self.state = RUN_E2
+            
+            elif 0 >= self.p_distancex > -56:
+                self.speedx = 0
+                self.state = socos[self.i]
+            elif -60 >= self.p_distancex >= -100:
+                self.speedx = 0
+                self.image = self.image = self.animation[self.frame]
+                self.state = socos[self.i]
+            else:
+                self.state = STILL_E2
+                self.speedx = 0
+        else:
+            self.state = STANCE_E2
+            self.speedx = 0
+                   
+         
+        # Colisão
+        for bloco in platforms_horizont:
+            if pygame.sprite.collide_mask(self, bloco):
+                if self.speedy > 0:
+                    self.speedy = 0
+        
+
+
 # Classe jogador
 class Player(pygame.sprite.Sprite):
     def __init__(self,assets):
@@ -345,6 +467,8 @@ class Player(pygame.sprite.Sprite):
 player = Player(assets)
 # chamando a classe inimigo1
 inimigo1 = Enemie1(assets)
+# chamando a classe inmigo2
+inimigo2 = Enemie2(assets)
  
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
@@ -414,12 +538,14 @@ while game:
 
     window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
     window.blit(inimigo1.image,(inimigo1.rect.centerx - camera_x,inimigo1.rect.centery - camera_y))
+    window.blit(inimigo2.image,(inimigo2.rect.centerx - camera_x,inimigo2.rect.centery - camera_y))
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
     # for bloco in blocos_vert:
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
     
     player.update()
     inimigo1.update()
+    inimigo2.update()
     
     
     pygame.display.update()  # Atualiza a tela
