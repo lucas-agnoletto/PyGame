@@ -25,8 +25,8 @@ posicao_imagem = (LARGURA + 100 , 0)
 fonte = pygame.font.Font(None, 50)  # Fonte e tamanho do texto
 texto = "Clique ESPAÇO para começar"
 cor_texto = (255, 255, 255)  # Cor branca
+cor_fundo_texto = (0, 0, 0)  # Cor preta para o fundo do texto
 posicao_texto = (LARGURA // 2, ALTURA // 2 + 200)
-
 
 # Variável para controlar o piscar do texto
 mostrar_texto = True
@@ -45,10 +45,15 @@ def main():
             mostrar_texto = not mostrar_texto
             tempo_mudanca = pygame.time.get_ticks()
 
-        # Desenhar o texto animado
+        # Desenhar o texto animado com retângulo de fundo
         if mostrar_texto:
             texto_surface = fonte.render(texto, True, cor_texto)
             texto_rect = texto_surface.get_rect(center=posicao_texto)
+            
+            # Desenhar o retângulo preto atrás do texto
+            pygame.draw.rect(tela, cor_fundo_texto, texto_rect.inflate(20, 10))  # Aumenta um pouco o retângulo
+
+            # Desenhar o texto sobre o retângulo preto
             tela.blit(texto_surface, texto_rect)
 
         # Verificar eventos
