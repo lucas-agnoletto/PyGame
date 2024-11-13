@@ -22,8 +22,8 @@ imagem_titulo = pygame.transform.scale(imagem_titulo, (400, 400))
 posicao_imagem = (LARGURA + 100 , 0)
 
 # Configurações do texto
-fonte = pygame.font.Font(None, 50)  # Fonte e tamanho do texto
-texto = "Clique ESPAÇO para começar"
+fonte = pygame.font.Font('Sancreek-Regular.ttf', 48)  # Fonte e tamanho do texto
+texto = "Press SPACE to start"
 cor_texto = (255, 255, 255)  # Cor branca
 cor_fundo_texto = (0, 0, 0)  # Cor preta para o fundo do texto
 posicao_texto = (LARGURA // 2, ALTURA // 2 + 200)
