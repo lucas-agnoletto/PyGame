@@ -8,13 +8,15 @@ pygame.mixer.music.load('The Godfather Original Theme Song.mp3')
 pygame.mixer.music.play(loops=-1)
 
 # Configurações da tela
-LARGURA, ALTURA = 800, 600
+LARGURA, ALTURA = 900, 550
 tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Tela de Menu")
 
 # Carregar imagem de fundo
 imagem_fundo = pygame.image.load("Imagem de Intro - PyGame.jpg")
-imagem_fundo = pygame.transform.scale(imagem_fundo, (LARGURA, ALTURA))
+nova_alt_fundo = imagem_fundo.get_height() * 0.7
+nova_larg_fundo = imagem_fundo.get_width() * 0.7
+imagem_fundo = pygame.transform.scale(imagem_fundo, (nova_larg_fundo, nova_alt_fundo))
 
 # Carregar imagem de título
 imagem_titulo = pygame.image.load("Título Game.png")
