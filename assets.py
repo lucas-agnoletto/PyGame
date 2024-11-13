@@ -38,7 +38,14 @@ def load_assets():
     vida = pygame.image.load('assets/img/Vida.png').convert_alpha()
     vida = pygame.transform.scale(vida,(vida.get_width()*2,vida.get_height()*2))
     assets['vida'] = vida
-    assets['bullet'] = pygame.image.load('assets/img/Munição(gangster).png').convert_alpha()
+    # tiro
+    bullet = pygame.image.load('assets/img/bullet.png').convert_alpha()
+    bullet_scale = 0.1
+    new_width = int(bullet.get_width()*bullet_scale)
+    new_height = int(bullet.get_height()*bullet_scale)
+    bullet = pygame.transform.scale(bullet,(new_width,new_height))
+    assets['bullet'] = bullet
+
     # Sons
     assets['shot_sound'] = pygame.mixer.Sound('assets/som/Tiro.ogg')
     assets['trilha_sonora'] = pygame.mixer.Sound('assets/som/Track06.ogg')

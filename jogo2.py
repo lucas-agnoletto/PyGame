@@ -241,13 +241,13 @@ class Enemie2(pygame.sprite.Sprite):
             self.last_punch = now
         self.image = self.animation[self.frame]
         self.image = pygame.transform.flip(self.image, True, False)
-        print(self.p_distancex)
+        
         if self.rect.y + 94 == player.rect.y:
             if  0 < self.p_distancex < 200:
                 self.speedx -= 0.1
                 self.state = RUN_E2
                 
-            elif -100 > self.p_distancex:
+            elif -100 > self.p_distancex > -300:
                 self.image = self.image = self.animation[self.frame]
                 self.speedx += 0.1
                 self.state = RUN_E2
@@ -255,6 +255,7 @@ class Enemie2(pygame.sprite.Sprite):
             elif 0 >= self.p_distancex > -56:
                 self.speedx = 0
                 self.state = socos[self.i]
+                
             elif -60 >= self.p_distancex >= -100:
                 self.speedx = 0
                 self.image = self.image = self.animation[self.frame]
@@ -277,7 +278,7 @@ class Enemie2(pygame.sprite.Sprite):
 
 # Classe jogador
 class Player(pygame.sprite.Sprite):
-    def __init__(self,assets):
+    def __init__(self,assets,groups):
         pygame.sprite.Sprite.__init__(self)
         
         # Animacões
@@ -311,6 +312,7 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
         self.speedy = 0
         self.assets = assets
+        self.groups = groups
         self.recarga_ticks = 2500 
         self.shot_ticks = 100
         self.last_shot = pygame.time.get_ticks()
@@ -441,9 +443,15 @@ class Player(pygame.sprite.Sprite):
             self.last_shot = now
             self.state = SHOT  # Defina o estado como "atirando"
             self.municao -= 1  # Reduz a munição em 1
+            new_bullet = Bullet(self.assets, self.rect.centery + 30, self.rect.centerx)
+            # Adiciona os sprites da municao 
+            self.groups['all_sprites'].add(new_bullet)
+            self.groups['all_bullets'].add(new_bullet)
             assets['shot_sound'].set_volume(0.1)
             assets['shot_sound'].play()
-            
+            if pygame.sprite.collide_mask(bullet, inimigo2):
+                new_bullet.kill()
+
 
         
         # Se a munição acabar, inicie a recarga
@@ -460,19 +468,58 @@ class Player(pygame.sprite.Sprite):
                 self.recarga = False  # Termina a recarga
                 self.state = STILL
                 
+# classe que representa os tiros
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self,assets,bottom,centerx):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['bullet']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.x = centerx
+        self.rect.y = bottom
+        self.speedx = 20
+
+    def update(self):
+        
+        if not player.direction:
+            self.rect.x -= self.speedx
+        else:
+            self.rect.x += self.speedx
+        if self.rect.centerx > larg_fundo or self.rect.centerx < 0:
+            self.kill()
+        if pygame.sprite.collide_mask(self, inimigo2):
+            self.kill()
+
+
+
+
 
         
-
+all_sprites = pygame.sprite.Group()
+all_bullets = pygame.sprite.Group()
+groups = {}
+groups['all_sprites'] = all_sprites
+groups['all_bullets'] = all_bullets
 # chamando a classe player
-player = Player(assets)
+player = Player(assets,groups)
+all_sprites.add(player)
 # chamando a classe inimigo1
 inimigo1 = Enemie1(assets)
+all_sprites.add(inimigo1)
+
 # chamando a classe inmigo2
 inimigo2 = Enemie2(assets)
- 
+all_sprites.add(inimigo2)
+
+# adicionando as plataformas no grupo all_sprites
+
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
 clock = pygame.time.Clock()
+
+vidas = 5
+
 
 game = True
 pygame.mixer.music.play(loops=-1)
@@ -494,6 +541,7 @@ while game:
                 player.direction = False
             if event.key == pygame.K_w:
                 player.jump()
+
             if event.key == pygame.K_j:
                 player.state = CORONHADA
 
@@ -502,11 +550,11 @@ while game:
         if event.type == pygame.KEYUP:
             # Dependendo da tecla, altera a velocidade.
             if event.key == pygame.K_d and player.state :
-                player.speedx -= 4
+                player.speedx = 0
                 player.state = STILL
                 player.direction = True
             if event.key == pygame.K_a:
-                player.speedx += 4
+                player.speedx = 0
                 player.direction = False
                 player.state = STILL
             if event.key == pygame.K_SPACE:
@@ -516,9 +564,10 @@ while game:
 
         if key[pygame.K_SPACE]:
             player.shot()
+            
         #     player.speedx = 0
         # print(player.speedx)
-
+    
     if player.rect.bottom >= alt_fundo + player.rect.height:
         game = False
     camera_x = player.rect.centerx - LARG // 2
@@ -531,7 +580,11 @@ while game:
     window.fill((255, 255, 255))  
     window.blit(assets['fundo'],(-camera_x,-camera_y)) # atualiza o fundo
     window.blit(assets['munição'],(35,100))
-    window.blit(assets['vida'],(50,50))
+    # Desenhando as vidas
+    for i in range(vidas):
+        window.blit(assets['vida'],(50 +i*40 ,50))
+   
+
     texto = fonte.render(str(player.municao), True, (255,255,255))
     window.blit(texto,(100,115))
     # pygame.draw.rect(window, (0,0,0), player.rect)
@@ -542,7 +595,9 @@ while game:
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
     # for bloco in blocos_vert:
     #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
-    
+    for bullet in all_bullets:
+        window.blit(bullet.image,(bullet.rect.x - camera_x,bullet.rect.y - camera_y))
+    all_bullets.update()
     player.update()
     inimigo1.update()
     inimigo2.update()
