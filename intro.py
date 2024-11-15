@@ -5,7 +5,7 @@ import sys
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load('The Godfather Original Theme Song.mp3')
-pygame.mixer.music.play(loops=-1)
+
 
 # Configurações da tela
 LARGURA, ALTURA = 900, 550
@@ -36,6 +36,8 @@ tempo_mudanca = pygame.time.get_ticks()
 
 # Função principal
 def main():
+    pygame.mixer.music.load('The Godfather Original Theme Song.mp3')
+    pygame.mixer.music.play(loops=-1)
     global mostrar_texto, tempo_mudanca  # Declare as variáveis globais aqui
     rodando = True
     while rodando:
@@ -66,6 +68,7 @@ def main():
             elif evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_SPACE:
                     rodando = False  # Sai do loop e inicia o jogo
+                    pygame.mixer.music.stop()
 
         pygame.display.flip()  # Atualiza a tela
         pygame.time.Clock().tick(60)  # Controla a taxa de quadros (60 FPS)

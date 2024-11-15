@@ -38,7 +38,7 @@ def load_assets():
     vida = pygame.image.load('assets/img/Vida.png').convert_alpha()
     vida = pygame.transform.scale(vida,(vida.get_width()*2,vida.get_height()*2))
     assets['vida'] = vida
-    # tiro
+    # tiros
     bullet = pygame.image.load('assets/img/bullet.png').convert_alpha()
     bullet_scale = 0.1
     new_width = int(bullet.get_width()*bullet_scale)
@@ -49,6 +49,9 @@ def load_assets():
     # Sons
     assets['shot_sound'] = pygame.mixer.Sound('assets/som/Tiro.ogg')
     assets['trilha_sonora'] = pygame.mixer.Sound('assets/som/Track06.ogg')
+    assets['pistol_sound'] = pygame.mixer.Sound('assets/som/single_shot.mp3')
+    assets['punch_sound'] = pygame.mixer.Sound('assets/som/punch_sound2.mp3')
+    
     # ASSETS DO PLAYER:
     # Carrega e corta sprites
     personagem = pygame.image.load('assets/img/Gangster.png').convert_alpha()
@@ -168,6 +171,7 @@ def load_assets():
         inimigo2_ata3[i] = pygame.transform.scale(inimigo2_ata3[i], (nova_largura, nova_altura))
     for i in range(len(inimigo2_ata2)):
         inimigo2_ata2[i] = pygame.transform.scale(inimigo2_ata2[i], (nova_largura, nova_altura))
+    for i in range(len(inimigo2_morto)):
         inimigo2_morto[i] = pygame.transform.scale(inimigo2_morto[i], (nova_largura, nova_altura))
     for i in range(len(inimigo2_hurt)):
         inimigo2_hurt[i] = pygame.transform.scale(inimigo2_hurt[i], (nova_largura, nova_altura))
