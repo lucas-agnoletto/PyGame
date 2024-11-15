@@ -52,7 +52,7 @@ STANCE_E2 = 8
 larg_fundo = assets['fundo'].get_width()
 alt_fundo = assets['fundo'].get_height()
 
-fonte = pygame.font.Font(None, 74)
+fonte = pygame.font.Font('Sancreek-Regular.ttf', 48)
 
 # Classe plataforma
 class Platform(pygame.sprite.Sprite):
@@ -174,6 +174,7 @@ class Enemie1(pygame.sprite.Sprite):
                         assets['pistol_sound'].set_volume(0.5)
                         assets['pistol_sound'].play()
                         if pygame.sprite.collide_mask(new_bullet,player):
+                            print('colidiu')
                             player.lives -= 0.5
                             new_bullet.kill()
                             
@@ -182,12 +183,13 @@ class Enemie1(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.state = PUNCH_E1
                 if pygame.sprite.collide_mask(inimigo1,player):
+                        assets['punch_sound'].play()
                         player.lives -= 0.02
 
             elif 0 >= self.p_distance > -60:
                 self.state = PUNCH_E1
                 if pygame.sprite.collide_mask(inimigo1,player):
-                        
+                        assets['punch_sound'].play()
                         player.lives -= 0.02
                 
             else:
@@ -279,8 +281,8 @@ class Enemie2(pygame.sprite.Sprite):
         if self.lives <= 0:
             self.state = DEAD_E2
             self.frame = 4
-    
-        
+            self.animation = self.animations[self.state]
+        print(self.state, self.frame)
         self.image = pygame.transform.flip(self.image, True, False)
         if self.lives > 0:
             if abs(self.rect.y - player.rect.y) < 10: 
@@ -579,13 +581,21 @@ alt_fundo = assets['fundo'].get_height()
 clock = pygame.time.Clock()
 
 vidas = 5
-
-
+font = pygame.font.Font('Sancreek-Regular.ttf', 48)
+start_time = pygame.time.get_ticks()
 game = True
 assets['trilha_sonora'].play(loops=-1)
 while game:
     
     clock.tick(FPS) 
+    # Calcule o tempo decorrido 
+    elapsed_ticks = pygame.time.get_ticks() - start_time # Converta o tempo decorrido para minutos e segundos 
+    elapsed_seconds = elapsed_ticks / 1000
+    minutes = int(elapsed_seconds // 60)
+    seconds = int(elapsed_seconds % 60) 
+    miliseconds = int((elapsed_ticks % 1000)//10)
+    # Renderize o texto do cronômetro 
+    timer_text = font.render(f'{minutes:02}:{seconds:02}:{miliseconds:02}', True, (255, 255, 255))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
@@ -654,18 +664,16 @@ while game:
         window.blit(assets['vida'],(50 + i*40 ,50))
    
 
-    texto = fonte.render(str(player.municao), True, (255,255,255))
-    window.blit(texto,(100,115))
+    texto = fonte.render(f'{player.municao} ∞ ', True, (255,255,255))
+    window.blit(texto,(100,100))
     # pygame.draw.rect(window, (0,0,0), player.rect)
     for bullet in all_bullets:
         window.blit(bullet.image,(bullet.rect.x - camera_x,bullet.rect.y - camera_y))
     window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
     window.blit(inimigo1.image,(inimigo1.rect.x - camera_x,inimigo1.rect.y - camera_y))
     window.blit(inimigo2.image,(inimigo2.rect.x - camera_x,inimigo2.rect.y - camera_y))
-    #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
-    # for bloco in blocos_vert:
-    #     pygame.draw.rect(window, (0, 255, 0), (bloco.x, bloco.y, bloco.width, bloco.height))
-   
+    window.blit(timer_text, (750, 30))
+
     all_bullets.update()
     player.update()
     inimigo1.update()
