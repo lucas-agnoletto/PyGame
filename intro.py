@@ -1,6 +1,6 @@
 import pygame
 import sys
-
+from  jogo2 import jogo
 # Inicialização do PyGame
 pygame.init()
 pygame.mixer.init()
@@ -76,3 +76,52 @@ def main():
 # Executa a função principal
 if __name__ == "__main__":
     main()
+# QUando morre aparece isso
+def game_over_screen(window,game):
+    game_over_font = pygame.font.Font('Sancreek-Regular.ttf', 72)
+    text = game_over_font.render('Game Over', True, (255,0,0)) 
+    text_rect = text.get_rect(center=(500, 260)) 
+    
+    while True: 
+        if not game:
+            
+            window.blit(text, text_rect) 
+            pygame.display.update()
+            # Verificar eventos
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    jogo()
+                    
+                elif evento.type == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+
+# Quando mata todo mundo aparece isso
+def sucesso_screen(window):
+    game_over_font = pygame.font.Font('Sancreek-Regular.ttf', 72)
+    text = game_over_font.render('Você Ganhou', True, (218, 203, 59)) 
+    text_rect = text.get_rect(center=(500, 260)) 
+    
+    while True: 
+        
+            
+        window.blit(text, text_rect) 
+        pygame.display.update()
+            # Verificar eventos
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                   jogo()
+                    
+                elif evento.type == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()       
