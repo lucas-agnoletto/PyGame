@@ -55,6 +55,8 @@ def load_assets():
     assets['grito_morte'].set_volume(0.5)
     assets['grito_morte_enemie'] = pygame.mixer.Sound('assets/som/grito_morte_enemie.mp3')
     assets['perde_vida'] = pygame.mixer.Sound('assets/som/sofre_danosound.mp3')
+    assets['som_coronhada'] = pygame.mixer.Sound('assets/som/som_coronhada.mp3')
+
     # ASSETS DO PLAYER:
     # Carrega e corta sprites
     personagem = pygame.image.load('assets/img/Gangster.png').convert_alpha()

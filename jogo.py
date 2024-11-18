@@ -7,27 +7,27 @@ pygame.init()
 
 
 pygame.mixer.init()
-pygame.mixer.music.load('The Godfather Original Theme Song.mp3')
+pygame.mixer.music.load('assets/som/The Godfather Original Theme Song.mp3')
 
 
 # Configurações da tela
 LARGURA, ALTURA = 900, 550
 tela = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Tela de Menu")
+pygame.display.set_caption("assets/img/Tela de Menu")
 assets = load_assets()
 # Carregar imagem de fundo
-imagem_fundo = pygame.image.load("Imagem de Intro - PyGame.jpg")
+imagem_fundo = pygame.image.load("assets/img/Imagem de Intro - PyGame.jpg")
 nova_alt_fundo = imagem_fundo.get_height() * 0.7
 nova_larg_fundo = imagem_fundo.get_width() * 0.7
 imagem_fundo = pygame.transform.scale(imagem_fundo, (nova_larg_fundo, nova_alt_fundo))
 
 # Carregar imagem de título
-imagem_titulo = pygame.image.load("Título Game.png")
+imagem_titulo = pygame.image.load("assets/img/Título Game.png")
 imagem_titulo = pygame.transform.scale(imagem_titulo, (400, 400))
 posicao_imagem = (LARGURA + 100 , 0)
 
 # Configurações do texto
-fonte = pygame.font.Font('Sancreek-Regular.ttf', 48)  # Fonte e tamanho do texto
+fonte = pygame.font.Font('assets/img/Sancreek-Regular.ttf', 48)  # Fonte e tamanho do texto
 texto = "Press SPACE to start"
 cor_texto = (255, 255, 255)  # Cor branca
 cor_fundo_texto = (0, 0, 0)  # Cor preta para o fundo do texto
@@ -37,18 +37,50 @@ posicao_texto = (LARGURA // 2, ALTURA // 2 + 200)
 mostrar_texto = True
 tempo_mudanca = pygame.time.get_ticks()
 
-# Função principal
-def game_over_screen(window,game):
-    game_over_font = pygame.font.Font('Sancreek-Regular.ttf', 72)
-    text = game_over_font.render('VOCÊ MORREU', True, (255,0,0)) 
-    text_rect = text.get_rect(center=(500, 260)) 
-    assets['grito_morte'].set_volume(0.5)
-    assets['grito_morte'].play(loops = 0)
+
+def tutorial():
     
+    imagem_GO = pygame.image.load('assets/img/Controles pygame.jpeg').convert_alpha()
+    lar_img = imagem_GO.get_width()*0.8
+    alt_img = imagem_GO.get_height()*0.8
+    tela = pygame.display.set_mode((lar_img, alt_img))
+    imagem_GO = pygame.transform.scale(imagem_GO,(lar_img,alt_img))
     while True: 
         
-            
-        window.blit(text, text_rect) 
+        
+        
+        tela.blit(imagem_GO,(0,0))
+        pygame.display.update()
+            # Verificar eventos
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    jogo()
+                    
+                elif evento.type == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+        pygame.time.Clock().tick(60)       
+
+
+def game_over_screen():
+    gameOver = pygame.image.load('assets/img/Game_over.jpeg').convert_alpha()
+    gameOver = pygame.transform.scale(gameOver,(gameOver.get_width()*1.5,gameOver.get_height()*1.5))
+    texto = pygame.font.Font('assets/img/Sancreek-Regular.ttf', 36)
+    jog_nov = texto.render("PRESSIONE ESPAÇO PARA JOGAR NOVAMENTE", True, (255,255,255))
+    jog_nov_rect = jog_nov.get_rect(center=(50, 900)) 
+    assets['grito_morte'].set_volume(0.5)
+    assets['grito_morte'].play(loops = 0)
+    pygame.display.set_caption("assets/img/Tela de Menu")
+    window = tela = pygame.display.set_mode((gameOver.get_width(),gameOver.get_height()))
+    while True: 
+        window.blit(gameOver,(0,0)) 
+        window.blit(jog_nov,(10,400))
+        
         pygame.display.update()
             # Verificar eventos
         for evento in pygame.event.get():
@@ -66,7 +98,9 @@ def game_over_screen(window,game):
 def sucesso_screen(window):
     game_over_font = pygame.font.Font('Sancreek-Regular.ttf', 72)
     text = game_over_font.render('Você Ganhou', True, (218, 203, 59)) 
-    text_rect = text.get_rect(center=(500, 260)) 
+    text_rect = text.get_rect(center=(500, 260))
+    texto = pygame.font.Font('assets/img/Sancreek-Regular.ttf', 48)
+    jog_nov = texto.render("PRESSIONE ESPAÇO PARA JOGAR NOVAMENTE", True, (255,255,255))
     
     while True: 
         
@@ -141,7 +175,7 @@ def jogo():
     larg_fundo = assets['fundo'].get_width()
     alt_fundo = assets['fundo'].get_height()
 
-    fonte = pygame.font.Font('Sancreek-Regular.ttf', 48)
+    fonte = pygame.font.Font('assets/img/Sancreek-Regular.ttf', 48)
 
     # Classe plataforma
     class Platform(pygame.sprite.Sprite):
@@ -317,7 +351,7 @@ def jogo():
             self.p_distancex = self.rect.centerx + 60 - player.rect.centerx
             self.p_distancey = self.rect.y - player.rect.y
             self.last_update = pygame.time.get_ticks()
-            self.lives = 15
+            self.lives = 20
             self.i = 0 
             self.punches_tick = 500
             self.last_punch = pygame.time.get_ticks()
@@ -451,7 +485,7 @@ def jogo():
                 self.p_distancex = self.rect.centerx + 60 - player.rect.centerx
                 self.p_distancey = self.rect.y - player.rect.y
                 self.last_update = pygame.time.get_ticks()
-                self.lives = 15
+                self.lives = 20
                 self.i = 0 
                 self.punches_tick = 500
                 self.last_punch = pygame.time.get_ticks()
@@ -480,7 +514,8 @@ def jogo():
                         assets['grito_morte_enemie'].play()
                         self.life = False
 
-                print(self.lives)
+                
+                
                 # Se já está na hora de mudar de imagem...
                 
                 if elapsed_ticks > self.frame_ticks:
@@ -723,7 +758,7 @@ def jogo():
             # Só pode pular se ainda não estiver pulando ou caindo
             
             if self.speedy == 0:
-                self.speedy = -20
+                self.speedy = -17
                 self.state = JUMP
             
             
@@ -846,6 +881,7 @@ def jogo():
         miliseconds = int((elapsed_ticks % 1000)//10)
         # Renderize o texto do cronômetro 
         timer_text = fonte.render(f'{minutes:02}:{seconds:02}:{miliseconds:02}', True, (255, 255, 255))
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game = False
@@ -867,12 +903,13 @@ def jogo():
                     player.state = CORONHADA
                     if pygame.sprite.collide_mask(player, inimigo1):
                         inimigo1.lives -= 2
-                        
+                        assets['som_coronhada'].play()
                     if pygame.sprite.collide_mask(player, inimigo2):
                         inimigo2.lives -= 2
+                        assets['som_coronhada'].play()
                     if pygame.sprite.collide_mask(player, inimigo3):
                         inimigo3.lives -= 2
-                        
+                        assets['som_coronhada'].play()
                         
             
             # Verifica se soltou alguma tecla.
@@ -894,8 +931,7 @@ def jogo():
             if key[pygame.K_SPACE]:
                 player.shot()
                 
-            #     player.speedx = 0
-            # print(player.speedx)
+            
         if player.dead == True:
             game = False
         
@@ -921,7 +957,7 @@ def jogo():
         texto = fonte.render(f'{player.municao} ∞ ', True, (255,255,255))
         window.blit(texto,(100,100))
         window.blit(pule,(2400 - camera_x, 400 - camera_y))
-        # pygame.draw.rect(window, (0,0,0), player.rect)
+        
         for bullet in all_bullets:
             window.blit(bullet.image,(bullet.rect.x - camera_x,bullet.rect.y - camera_y))
         window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
@@ -939,10 +975,10 @@ def jogo():
         if gameover:
             player.state = DEAD
             assets['trilha_sonora'].stop()
-            game_over_screen(window,game)
-        if player.lives <= 0:
+            game_over_screen()
+        if player.lives <= 0 or minutes == 1:
             gameover = True
-        print(gameover)
+        
         if inimigo1.state == DEAD_E1 and inimigo2.state == DEAD_E2 and inimigo3.state == DEAD_E3:
             assets['trilha_sonora'].stop()
             sucesso_screen(window)
@@ -952,7 +988,8 @@ def jogo():
         pygame.display.update()  # Atualiza a tela
 
 def main():
-    pygame.mixer.music.load('The Godfather Original Theme Song.mp3')
+
+    pygame.mixer.music.load('assets/som/The Godfather Original Theme Song.mp3')
     pygame.mixer.music.play(loops=-1)
     global mostrar_texto, tempo_mudanca  # Declare as variáveis globais aqui
     rodando = True
@@ -985,7 +1022,7 @@ def main():
                 if evento.key == pygame.K_SPACE:
                     rodando = False  # Sai do loop e inicia o jogo
                     pygame.mixer.music.stop()
-                    jogo()
+                    tutorial()
         pygame.display.flip()  # Atualiza a tela
         pygame.time.Clock().tick(60)  # Controla a taxa de quadros (60 FPS)
 main()
