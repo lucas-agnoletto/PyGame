@@ -40,8 +40,10 @@ tempo_mudanca = pygame.time.get_ticks()
 # Função principal
 def game_over_screen(window,game):
     game_over_font = pygame.font.Font('Sancreek-Regular.ttf', 72)
-    text = game_over_font.render('Game Over', True, (255,0,0)) 
+    text = game_over_font.render('VOCÊ MORREU', True, (255,0,0)) 
     text_rect = text.get_rect(center=(500, 260)) 
+    assets['grito_morte'].set_volume(0.5)
+    assets['grito_morte'].play(loops = 0)
     
     while True: 
         
@@ -128,6 +130,13 @@ def jogo():
     WALK_E2 = 6
     RUN_E2 = 7
     STANCE_E2 = 8     
+    # num das animaçoes do inimigo3
+    STILL_E3 = 0
+    DEAD_E3 = 1
+    RUN_E3 = 2
+    HIT1 = 3
+    HIT2 = 4
+    HIT3 = 5
     # Medidas do background
     larg_fundo = assets['fundo'].get_width()
     alt_fundo = assets['fundo'].get_height()
@@ -266,13 +275,13 @@ def jogo():
                     self.image = pygame.transform.flip(self.image, True, False)
                     self.state = PUNCH_E1
                     if pygame.sprite.collide_mask(inimigo1,player):
-                            assets['punch_sound'].play()
+                            assets['punch_sound'].play(0)
                             player.lives -= 0.02
 
                 elif 0 >= self.p_distance > -60:
                     self.state = PUNCH_E1
                     if pygame.sprite.collide_mask(inimigo1,player):
-                            assets['punch_sound'].play()
+                            assets['punch_sound'].play(0)
                             player.lives -= 0.02
                     
                 else:
@@ -379,12 +388,12 @@ def jogo():
                 
                 if abs(self.rect.y - player.rect.y) < 10: 
                     if  0 < self.p_distancex and self.p_distancex < 200:
-                        self.speedx -= 0.1
+                        self.speedx = -1.5
                         self.state = RUN_E2
                         
                     elif -70 > self.p_distancex and self.p_distancex > -300:
                         self.image = self.image = self.animation[self.frame]
-                        self.speedx += 0.1
+                        self.speedx = 1.5
                         self.state = RUN_E2
                     
                     elif 0 >= self.p_distancex and self.p_distancex > -60:
@@ -413,9 +422,142 @@ def jogo():
                 else:
                     self.state = STANCE_E2
                     self.speedx = 0
-        
-    # class Enemie3(pygame.sprite.Sprite):           
+            else:
+                self.speedx = 0
+    class Enemie3(pygame.sprite.Sprite):           
+            def __init__(self,assets):
+                pygame.sprite.Sprite.__init__(self)
+
+                self.animations = {
+                    STILL_E3: assets['inimigo3'][0:],
+                    DEAD_E3: assets['morto_e3'][3:],
+                    RUN_E3: assets['run_e3'][0:],
+                    HIT1: assets['ata1_e3'][0:],
+                    HIT2: assets['ata2_e3'][0:],
+                    HIT3: assets['ata3_e3'][0:],
+                }   
+                self.state = STILL_E3
+                self.animation = self.animations[self.state]
+                self.frame = 0
+                self.image = self.animation[self.frame]
+                self.mask = pygame.mask.from_surface(self.image)
+                self.rect = self.mask.get_rect()
+                self.life = True
+                self.rect.x = 600
+                self.rect.y = 440
+                self.speedx = 0
+                self.speedy = 0
+                self.assets = assets
+                self.p_distancex = self.rect.centerx + 60 - player.rect.centerx
+                self.p_distancey = self.rect.y - player.rect.y
+                self.last_update = pygame.time.get_ticks()
+                self.lives = 15
+                self.i = 0 
+                self.punches_tick = 500
+                self.last_punch = pygame.time.get_ticks()
+                self.animation_ticks = {
+                        STILL_E3: 100,
+                        HIT3: 80,
+                        HIT1: 80,
+                        HIT2: 80,
+                        DEAD_E3: 300,
+                        RUN_E3: 100
+                        }
+            def update(self):
+                
+                now = pygame.time.get_ticks()
+                
+                self.rect.centerx += self.speedx
+                self.p_distancex = self.rect.centerx - 35 - player.rect.centerx
+                self.p_distancey = self.rect.centery - player.rect.centery
+                
+                # Verifica quantos ticks se passaram desde a ultima mudança de frame.
+                elapsed_ticks = now - self.last_update
+                self.frame_ticks = self.animation_ticks.get(self.state, 200)
+                # faz barulho ao morrer
+                if self.lives <= 0:
+                    if self.life == True:
+                        assets['grito_morte_enemie'].play()
+                        self.life = False
+
+                print(self.lives)
+                # Se já está na hora de mudar de imagem...
+                
+                if elapsed_ticks > self.frame_ticks:
+
+                    # Marca o tick da nova imagem.
+                    self.last_update = now
+
+                    # Avança um quadro.
+                    self.frame += 1
+
+                    # Atualiza animação atual
+                    self.animation = self.animations[self.state]
+                    
+                    # Reinicia a animação caso o índice da imagem atual seja inválido
+                    
+                    if self.frame >= len(self.animation):
+                        self.frame = 0
+                
             
+                    
+                    
+                socos = [HIT1,HIT2,HIT3]
+                if now - self.last_punch > self.punches_tick:
+                    self.i += 1
+                    if self.i > 2:
+                        self.i = 0
+                    self.last_punch = now
+                    
+                
+                self.image = self.animation[self.frame]
+                if self.lives <= 0:
+                    self.state = DEAD_E3
+                    
+                    
+                
+                self.image = pygame.transform.flip(self.image, True, False)
+                
+                if self.lives > 0:
+                    
+                    if abs(self.rect.y - player.rect.y) < 10: 
+                        if  0 < self.p_distancex and self.p_distancex < 300:
+                            self.speedx = -2
+                            self.state = RUN_E3
+                            
+                        elif -90 > self.p_distancex and self.p_distancex > -300:
+                            self.image = self.image = self.animation[self.frame]
+                            self.speedx = 2
+                            self.state = RUN_E3
+                        
+                        elif 0 >= self.p_distancex and self.p_distancex > -50:
+                            self.speedx = 0
+                            self.state = socos[self.i]
+                            if pygame.sprite.collide_mask(inimigo3,player):
+                                player.lives -= 0.02
+                                
+                                if self.last_punch == now:
+                                    assets['punch_sound'].play()
+                                
+                                
+                        elif -50 >= self.p_distancex and self.p_distancex >= -90:
+                            self.speedx = 0
+                            self.image = self.animation[self.frame]
+                            self.state = socos[self.i]
+                            if pygame.sprite.collide_mask(inimigo3,player):
+                                player.lives -= 0.02
+                                if self.last_punch == now:
+                                    assets['punch_sound'].play()
+                                
+
+                        else:
+                            self.state = STILL_E3
+                            self.speedx = 0
+                    else:
+                        self.state = STILL_E3
+                        self.speedx = 0
+                else:
+                    self.speedx = 0
 
 
     # Classe jogador
@@ -436,7 +578,7 @@ def jogo():
                 HURT: assets['ferido'][0:5],
                 STOP_SHOOTING: assets['stop_shot'][0:],
                 CORONHADA: assets['porrada'][0:],
-                DEAD: assets['morto'][0:]
+                DEAD: assets['morto'][4:]
             }
             self.municao = 50
             self.recarga = False
@@ -477,7 +619,7 @@ def jogo():
                     LANDING: 10,
                     STOP_SHOOTING:100,
                     CORONHADA: 50, 
-                    DEAD:200
+                    DEAD:0
 
                     }
         
@@ -639,14 +781,18 @@ def jogo():
             if self.rect.centerx > larg_fundo or self.rect.centerx < 0:
                 self.kill()
             if pygame.sprite.collide_mask(self, inimigo2):
-                inimigo2.lives -= 0.5
+                inimigo2.lives -= 2
                 
             if pygame.sprite.collide_mask(self, inimigo1):
-                inimigo1.lives -= 0.5
+                inimigo1.lives -= 1
         
             if pygame.sprite.collide_mask(self, player):
                 player.lives -= 0.5
                 self.kill()
+
+            if pygame.sprite.collide_mask(self, inimigo3):
+                inimigo3.lives -= 2
+        
             pygame.sprite.groupcollide(all_sprites, all_bullets, False, True, pygame.sprite.collide_mask)
             
 
@@ -668,7 +814,10 @@ def jogo():
     inimigo2 = Enemie2(assets)
     all_sprites.add(inimigo2)
     all_enemies.add(inimigo2)
-
+    # chamando a classe inmigo2
+    inimigo3 = Enemie3(assets)
+    all_sprites.add(inimigo3)
+    all_enemies.add(inimigo3)
     # adicionando as plataformas no grupo all_sprites
     for bloco in platforms_vert:
         all_sprites.add(bloco)
@@ -679,11 +828,14 @@ def jogo():
     alt_fundo = assets['fundo'].get_height()
     clock = pygame.time.Clock()
 
-    vidas = 5
+    vida = player.lives
     start_ticks = pygame.time.get_ticks()
+    gameover = False
     game = True
     assets['trilha_sonora'].play(loops=-1)
     while game:
+        if vida - player.lives == 1:
+            assets['perde_vida'].play()         
         
         clock.tick(FPS) 
         # Calcule o tempo decorrido 
@@ -718,6 +870,8 @@ def jogo():
                         
                     if pygame.sprite.collide_mask(player, inimigo2):
                         inimigo2.lives -= 2
+                    if pygame.sprite.collide_mask(player, inimigo3):
+                        inimigo3.lives -= 2
                         
                         
             
@@ -773,21 +927,23 @@ def jogo():
         window.blit(player.image, (player.rect.x - camera_x, player.rect.y - camera_y)) # atualiza o jogador
         window.blit(inimigo1.image,(inimigo1.rect.x - camera_x,inimigo1.rect.y - camera_y))
         window.blit(inimigo2.image,(inimigo2.rect.x - camera_x,inimigo2.rect.y - camera_y))
+        window.blit(inimigo3.image,(inimigo3.rect.x - camera_x,inimigo3.rect.y - camera_y))
         window.blit(timer_text, (750, 30))
     
         all_bullets.update()
         player.update()
         inimigo1.update()
         inimigo2.update()
+        inimigo3.update()
         
-        if player.lives <= 0:
+        if gameover:
+            player.state = DEAD
             assets['trilha_sonora'].stop()
             game_over_screen(window,game)
-            
-            for evento in pygame.event.get():
-                if evento.type == pygame.QUIT:
-                    pygame.quit() 
-        if inimigo1.state == DEAD_E1 and inimigo2.state == DEAD_E2:
+        if player.lives <= 0:
+            gameover = True
+        print(gameover)
+        if inimigo1.state == DEAD_E1 and inimigo2.state == DEAD_E2 and inimigo3.state == DEAD_E3:
             assets['trilha_sonora'].stop()
             sucesso_screen(window)
                 

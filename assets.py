@@ -54,6 +54,7 @@ def load_assets():
     assets['grito_morte'] = pygame.mixer.Sound('assets/som/player_grito_morte.mp3')
     assets['grito_morte'].set_volume(0.5)
     assets['grito_morte_enemie'] = pygame.mixer.Sound('assets/som/grito_morte_enemie.mp3')
+    assets['perde_vida'] = pygame.mixer.Sound('assets/som/sofre_danosound.mp3')
     # ASSETS DO PLAYER:
     # Carrega e corta sprites
     personagem = pygame.image.load('assets/img/Gangster.png').convert_alpha()
@@ -190,7 +191,7 @@ def load_assets():
     assets['correndo_e2'] = inimigo2_correndo
 
     #  ASSETS DO INIMIGO3
-    inimigo3 = pygame.image.load('assets/img/Inimigo2.png').convert_alpha()
+    inimigo3 = pygame.image.load('assets/img/Inimigo3.png').convert_alpha()
     inimigo3 = load_spritesheet(inimigo3,1,5)
     inimigo3_ata1 = pygame.image.load('assets/img/Inimigo3(ata1).png').convert_alpha()
     inimigo3_ata1 = load_spritesheet(inimigo3_ata1,1,5)
@@ -199,14 +200,17 @@ def load_assets():
     inimigo3_ata3 = pygame.image.load('assets/img/Inimigo3(ata3).png').convert_alpha()
     inimigo3_ata3 = load_spritesheet(inimigo3_ata3,1,4)
     inimigo3_run = pygame.image.load('assets/img/Inimigo3(correndo).png').convert_alpha()
-    inimigo3_run = load_spritesheet(inimigo3_run,1,3)
-
+    inimigo3_run = load_spritesheet(inimigo3_run,1,8)
+    inimigo3_morto = pygame.image.load('assets/img/Inimigo3(morto).png').convert_alpha()
+    inimigo3_morto = load_spritesheet(inimigo3_morto,1,4)
     for i in range(len(inimigo3)):
         inimigo3[i] = pygame.transform.scale(inimigo3[i], (nova_largura, nova_altura))
-        inimigo3_ata1[i] = pygame.transform.scale(inimigo1[i], (nova_largura, nova_altura))
-        inimigo3_ata2[i] = pygame.transform.scale(inimigo2[i], (nova_largura, nova_altura))
+        inimigo3_ata1[i] = pygame.transform.scale(inimigo3_ata1[i], (nova_largura, nova_altura))
+        inimigo3_ata2[i] = pygame.transform.scale(inimigo3_ata2[i], (nova_largura, nova_altura))
     for i in range(len(inimigo3_ata3)):
         inimigo3_ata3[i] = pygame.transform.scale(inimigo3_ata3[i], (nova_largura, nova_altura))
+        inimigo3_morto[i] = pygame.transform.scale(inimigo3_morto[i], (nova_largura, nova_altura))
+     
     for i in range(len(inimigo3_run)):
         inimigo3_run[i] = pygame.transform.scale(inimigo3_run[i], (nova_largura, nova_altura))
     
@@ -215,6 +219,7 @@ def load_assets():
     assets['ata1_e3'] = inimigo3_ata1
     assets['ata2_e3'] = inimigo3_ata2
     assets['ata3_e3'] = inimigo3_ata3
-
+    assets['morto_e3'] = inimigo3_morto
+    
 
     return assets
