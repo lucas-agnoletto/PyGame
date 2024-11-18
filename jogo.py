@@ -96,7 +96,7 @@ def game_over_screen():
                     pygame.quit()
                     sys.exit()
 def sucesso_screen(window):
-    game_over_font = pygame.font.Font('Sancreek-Regular.ttf', 72)
+    game_over_font = pygame.font.Font('assets/img/Sancreek-Regular.ttf', 72)
     text = game_over_font.render('Você Ganhou', True, (218, 203, 59)) 
     text_rect = text.get_rect(center=(500, 260))
     texto = pygame.font.Font('assets/img/Sancreek-Regular.ttf', 48)
@@ -422,12 +422,12 @@ def jogo():
                 
                 if abs(self.rect.y - player.rect.y) < 10: 
                     if  0 < self.p_distancex and self.p_distancex < 200:
-                        self.speedx = -1.5
+                        self.speedx = -2
                         self.state = RUN_E2
                         
                     elif -70 > self.p_distancex and self.p_distancex > -300:
                         self.image = self.image = self.animation[self.frame]
-                        self.speedx = 1.5
+                        self.speedx = 2
                         self.state = RUN_E2
                     
                     elif 0 >= self.p_distancex and self.p_distancex > -60:
@@ -619,7 +619,7 @@ def jogo():
             self.recarga = False
             self.direction = True
             self.state = STILL
-            self.lives = 5
+            self.lives = 4
             self.start_recarga = pygame.time.get_ticks()
             # Define animação atual
             self.animation = self.animations[self.state]
